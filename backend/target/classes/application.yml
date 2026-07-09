@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: sistema-provas
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sistema_provas
+    username: sistema_provas
+    password: sistema_provas
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+jwt:
+  secret: "XFDVIitzCTMB142ePgtd4/U8I5RqFzbXlsQWuIcScjA="
+  expiration: 86400000
+
+logging:
+  level:
+    org.springframework.security: DEBUG
