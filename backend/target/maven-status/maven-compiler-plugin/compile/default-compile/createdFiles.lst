@@ -1,0 +1,13 @@
+com/sistemadeprovas/controller/AuthController.class
+com/sistemadeprovas/security/JwtAuthenticationFilter.class
+com/sistemadeprovas/dto/RegisterRequest.class
+com/sistemadeprovas/config/SecurityConfig.class
+com/sistemadeprovas/dto/AuthResponse.class
+com/sistemadeprovas/security/CustomUserDetailsService.class
+com/sistemadeprovas/repository/UsuarioRepository.class
+com/sistemadeprovas/entity/Usuario.class
+com/sistemadeprovas/entity/Role.class
+com/sistemadeprovas/service/AuthService.class
+com/sistemadeprovas/dto/LoginRequest.class
+com/sistemadeprovas/SistemaProvasApplication.class
+com/sistemadeprovas/security/JwtService.class

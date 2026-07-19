@@ -1,0 +1,13 @@
+/home/vitor/Documents/Projetos/sistema-provas/backend/src/main/java/com/sistemadeprovas/SistemaProvasApplication.java
+/home/vitor/Documents/Projetos/sistema-provas/backend/src/main/java/com/sistemadeprovas/config/SecurityConfig.java
+/home/vitor/Documents/Projetos/sistema-provas/backend/src/main/java/com/sistemadeprovas/controller/AuthController.java
+/home/vitor/Documents/Projetos/sistema-provas/backend/src/main/java/com/sistemadeprovas/dto/AuthResponse.java
+/home/vitor/Documents/Projetos/sistema-provas/backend/src/main/java/com/sistemadeprovas/dto/LoginRequest.java
+/home/vitor/Documents/Projetos/sistema-provas/backend/src/main/java/com/sistemadeprovas/dto/RegisterRequest.java
+/home/vitor/Documents/Projetos/sistema-provas/backend/src/main/java/com/sistemadeprovas/entity/Role.java
+/home/vitor/Documents/Projetos/sistema-provas/backend/src/main/java/com/sistemadeprovas/entity/Usuario.java
+/home/vitor/Documents/Projetos/sistema-provas/backend/src/main/java/com/sistemadeprovas/repository/UsuarioRepository.java
+/home/vitor/Documents/Projetos/sistema-provas/backend/src/main/java/com/sistemadeprovas/security/CustomUserDetailsService.java
+/home/vitor/Documents/Projetos/sistema-provas/backend/src/main/java/com/sistemadeprovas/security/JwtAuthenticationFilter.java
+/home/vitor/Documents/Projetos/sistema-provas/backend/src/main/java/com/sistemadeprovas/security/JwtService.java
+/home/vitor/Documents/Projetos/sistema-provas/backend/src/main/java/com/sistemadeprovas/service/AuthService.java
