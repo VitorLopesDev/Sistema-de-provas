@@ -1,15 +1,6 @@
 import { useState } from "react"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
-<<<<<<< HEAD
 import { authService } from "../services/api"
-=======
-
-// Usuários simulados — depois será substituído pela API do Spring
-const USUARIOS_SIMULADOS = [
-  { email: "professor@teste.com", senha: "123456", perfil: "PROFESSOR", nome: "Prof. João Silva" },
-  { email: "aluno@teste.com",     senha: "123456", perfil: "ALUNO",     nome: "Maria Souza" },
-]
->>>>>>> fa89166d30b8be47f9f4c2f99530c3959f473ca8
 
 function Login({ onLogin }) {
   const [email, setEmail]               = useState("")
@@ -18,16 +9,11 @@ function Login({ onLogin }) {
   const [erro, setErro]                 = useState("")
   const [carregando, setCarregando]     = useState(false)
 
-<<<<<<< HEAD
   async function handleSubmit(e) {
-=======
-  function handleSubmit(e) {
->>>>>>> fa89166d30b8be47f9f4c2f99530c3959f473ca8
     e.preventDefault()
     setErro("")
     setCarregando(true)
 
-<<<<<<< HEAD
     try {
       const resposta = await authService.login(email, senha)
 
@@ -44,20 +30,6 @@ function Login({ onLogin }) {
     } finally {
       setCarregando(false)
     }
-=======
-    // Simula delay de rede
-    setTimeout(() => {
-      const usuario = USUARIOS_SIMULADOS.find(
-        (u) => u.email === email && u.senha === senha
-      )
-      if (usuario) {
-        onLogin(usuario)
-      } else {
-        setErro("E-mail ou senha incorretos.")
-      }
-      setCarregando(false)
-    }, 800)
->>>>>>> fa89166d30b8be47f9f4c2f99530c3959f473ca8
   }
 
   return (
