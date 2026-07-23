@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { authService } from "../services/api"
 
-function Login({ onLogin }) {
+function Login({ onLogin, onIrParaCadastro }) {
   const [email, setEmail]               = useState("")
   const [senha, setSenha]               = useState("")
   const [mostrarSenha, setMostrarSenha] = useState(false)
@@ -17,13 +17,12 @@ function Login({ onLogin }) {
     try {
       const resposta = await authService.login(email, senha)
 
-      // Guarda o token pra usar nas próximas requisições autenticadas
       localStorage.setItem("token", resposta.token)
 
       onLogin({
         nome: resposta.nome,
         email: resposta.email,
-        perfil: resposta.role, // "PROFESSOR" ou "ALUNO"
+        perfil: resposta.role,
       })
     } catch (err) {
       setErro(err.message || "E-mail ou senha incorretos.")
@@ -96,7 +95,7 @@ function Login({ onLogin }) {
 
         <p style={s.rodape}>
           Ainda não tem uma conta?{" "}
-          <span style={s.link}>Cadastre-se</span>
+          <span style={s.link} onClick={onIrParaCadastro}>Cadastre-se</span>
         </p>
 
       </div>
@@ -107,14 +106,14 @@ function Login({ onLogin }) {
 const s = {
   pagina: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #f2f0ff 0%, #e8e5ff 50%, #ebebf5 100%)",
+    background: "linear-gradient(135deg, #F7F6F2 0%, #EDEBE3 50%, #E4E2D9 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     padding: "20px",
   },
   card: {
-    background: "rgba(255, 255, 255, 0.6)",
+    background: "rgba(255, 255, 255, 0.65)",
     backdropFilter: "blur(24px)",
     WebkitBackdropFilter: "blur(24px)",
     border: "1px solid rgba(255, 255, 255, 0.8)",
@@ -122,7 +121,7 @@ const s = {
     padding: "40px 36px",
     width: "100%",
     maxWidth: "400px",
-    boxShadow: "0 8px 32px rgba(70, 43, 255, 0.08)",
+    boxShadow: "0 8px 32px rgba(31, 92, 107, 0.10)",
   },
   logo: {
     display: "flex",
@@ -131,7 +130,7 @@ const s = {
     marginBottom: "28px",
     justifyContent: "center",
   },
-   logoIcone: {
+  logoIcone: {
     width: "36px",
     height: "36px",
     background: "#040220",
@@ -156,7 +155,7 @@ const s = {
   },
   subtitulo: {
     fontSize: "14px",
-    color: "#6b698a",
+    color: "#5F5E5A",
     margin: "0 0 28px",
   },
   form: {
@@ -172,13 +171,13 @@ const s = {
   icone: {
     position: "absolute",
     left: "14px",
-    color: "#6b698a",
+    color: "#5F5E5A",
     pointerEvents: "none",
   },
   input: {
     width: "100%",
     padding: "12px 14px 12px 40px",
-    border: "1.5px solid #e2e0f0",
+    border: "1.5px solid #E4E2D9",
     borderRadius: "10px",
     fontSize: "14px",
     color: "#040220",
@@ -193,18 +192,18 @@ const s = {
     background: "none",
     border: "none",
     cursor: "pointer",
-    color: "#6b698a",
+    color: "#5F5E5A",
     display: "flex",
     alignItems: "center",
     padding: "0",
   },
   erro: {
-    color: "#dc5a59",
+    color: "#B23A3A",
     fontSize: "13px",
     margin: "0",
   },
   btnEntrar: {
-    background: "linear-gradient(135deg, #040220 0%, #15123c 100%)",
+    background: "#040220",
     color: "#fff",
     border: "none",
     borderRadius: "10px",
@@ -217,12 +216,12 @@ const s = {
   rodape: {
     textAlign: "center",
     fontSize: "13px",
-    color: "#6b698a",
+    color: "#5F5E5A",
     marginTop: "24px",
     marginBottom: "0",
   },
   link: {
-    color: "#462bff",
+    color: "#1F5C6B",
     fontWeight: "500",
     cursor: "pointer",
   },
