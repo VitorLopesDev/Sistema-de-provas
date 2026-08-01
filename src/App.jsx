@@ -3,6 +3,7 @@ import Home from "./pages/Home"
 import Login from "./pages/Login"
 import Cadastro from "./pages/Cadastro"
 import PainelProfessor from "./pages/PainelProfessor"
+import PainelAluno from "./pages/PainelAluno"
 
 function App() {
   const [usuario, setUsuario] = useState(null)
@@ -34,15 +35,21 @@ function App() {
   }
 
   if (usuario.perfil === "PROFESSOR") {
-    return <PainelProfessor usuario={usuario} onSair={() => setUsuario(null)} />
+    return (
+      <PainelProfessor
+        usuario={usuario}
+        onSair={() => setUsuario(null)}
+        onAtualizarUsuario={(dados) => setUsuario((u) => ({ ...u, ...dados }))}
+      />
+    )
   }
 
   return (
-    <div style={{ padding: "40px", fontFamily: "sans-serif" }}>
-      <h2>Olá, {usuario.nome}!</h2>
-      <p>Área do aluno em construção.</p>
-      <button onClick={() => setUsuario(null)}>Sair</button>
-    </div>
+    <PainelAluno
+      usuario={usuario}
+      onSair={() => setUsuario(null)}
+      onAtualizarUsuario={(dados) => setUsuario((u) => ({ ...u, ...dados }))}
+    />
   )
 }
 

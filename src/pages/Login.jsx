@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { authService } from "../services/api"
+import Logo from "../components/Logo"
 
 function Login({ onLogin, onIrParaCadastro }) {
   const [email, setEmail]               = useState("")
@@ -37,8 +38,7 @@ function Login({ onLogin, onIrParaCadastro }) {
 
         {/* Logo */}
         <div style={s.logo}>
-          <div style={s.logoIcone}>A</div>
-          <span style={s.logoTexto}>AvaliaFácil</span>
+          <Logo height={30} />
         </div>
 
         <h1 style={s.titulo}>Login</h1>
@@ -86,6 +86,7 @@ function Login({ onLogin, onIrParaCadastro }) {
           <button
             type="submit"
             disabled={carregando}
+            className="nexos-btn"
             style={{ ...s.btnEntrar, opacity: carregando ? 0.7 : 1 }}
           >
             {carregando ? "Entrando..." : "Entrar"}
@@ -95,7 +96,7 @@ function Login({ onLogin, onIrParaCadastro }) {
 
         <p style={s.rodape}>
           Ainda não tem uma conta?{" "}
-          <span style={s.link} onClick={onIrParaCadastro}>Cadastre-se</span>
+          <span style={s.link} className="nexos-link" onClick={onIrParaCadastro}>Cadastre-se</span>
         </p>
 
       </div>
@@ -106,7 +107,7 @@ function Login({ onLogin, onIrParaCadastro }) {
 const s = {
   pagina: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #F7F6F2 0%, #EDEBE3 50%, #E4E2D9 100%)",
+    background: "linear-gradient(135deg, var(--nexos-bg) 0%, var(--nexos-bg-alt) 50%, var(--nexos-border) 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -121,7 +122,7 @@ const s = {
     padding: "40px 36px",
     width: "100%",
     maxWidth: "400px",
-    boxShadow: "0 8px 32px rgba(31, 92, 107, 0.10)",
+    boxShadow: "0 8px 32px rgba(16, 94, 220, 0.10)",
   },
   logo: {
     display: "flex",
@@ -130,32 +131,15 @@ const s = {
     marginBottom: "28px",
     justifyContent: "center",
   },
-  logoIcone: {
-    width: "36px",
-    height: "36px",
-    background: "#040220",
-    borderRadius: "10px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: "18px",
-  },
-  logoTexto: {
-    fontSize: "18px",
-    fontWeight: "600",
-    color: "#040220",
-  },
   titulo: {
     fontSize: "24px",
     fontWeight: "700",
-    color: "#040220",
+    color: "var(--nexos-navy)",
     margin: "0 0 6px",
   },
   subtitulo: {
     fontSize: "14px",
-    color: "#5F5E5A",
+    color: "var(--nexos-gray)",
     margin: "0 0 28px",
   },
   form: {
@@ -171,16 +155,16 @@ const s = {
   icone: {
     position: "absolute",
     left: "14px",
-    color: "#5F5E5A",
+    color: "var(--nexos-gray)",
     pointerEvents: "none",
   },
   input: {
     width: "100%",
     padding: "12px 14px 12px 40px",
-    border: "1.5px solid #E4E2D9",
+    border: "1.5px solid var(--nexos-border)",
     borderRadius: "10px",
     fontSize: "14px",
-    color: "#040220",
+    color: "var(--nexos-navy)",
     background: "rgba(255,255,255,0.7)",
     outline: "none",
     boxSizing: "border-box",
@@ -192,18 +176,18 @@ const s = {
     background: "none",
     border: "none",
     cursor: "pointer",
-    color: "#5F5E5A",
+    color: "var(--nexos-gray)",
     display: "flex",
     alignItems: "center",
     padding: "0",
   },
   erro: {
-    color: "#B23A3A",
+    color: "var(--nexos-error)",
     fontSize: "13px",
     margin: "0",
   },
   btnEntrar: {
-    background: "#040220",
+    background: "linear-gradient(120deg, var(--nexos-blue), var(--nexos-purple))",
     color: "#fff",
     border: "none",
     borderRadius: "10px",
@@ -212,16 +196,18 @@ const s = {
     fontWeight: "600",
     cursor: "pointer",
     marginTop: "4px",
+    fontFamily: "inherit",
+    boxShadow: "0 8px 22px rgba(16, 94, 220, 0.28)",
   },
   rodape: {
     textAlign: "center",
     fontSize: "13px",
-    color: "#5F5E5A",
+    color: "var(--nexos-gray)",
     marginTop: "24px",
     marginBottom: "0",
   },
   link: {
-    color: "#1F5C6B",
+    color: "var(--nexos-blue)",
     fontWeight: "500",
     cursor: "pointer",
   },

@@ -1,11 +1,27 @@
-import { FileText, LogOut, PanelLeft } from "lucide-react"
+import { Home, Library, BookOpen, FileText, GraduationCap, ClipboardList, LogOut, PanelLeft } from "lucide-react"
+import Logo from "../components/Logo"
+import AvatarDisplay from "./AvatarDisplay"
 
-const itens = [
+const ITENS_PROFESSOR = [
+  { icone: Home, label: "Home", id: "home" },
+  { icone: Library, label: "Minhas Disciplinas", id: "disciplinas" },
+  { icone: BookOpen, label: "Banco de Questões", id: "questoes" },
   { icone: FileText, label: "Provas", id: "provas" },
+  { icone: GraduationCap, label: "Turmas", id: "turmas" },
 ]
 
-function Sidebar({ paginaAtiva, onNavegar, usuario, onSair, aberto, onToggle }) {
+const ITENS_ALUNO = [
+  { icone: Home, label: "Home", id: "home" },
+  { icone: GraduationCap, label: "Minhas turmas", id: "turmas" },
+  { icone: FileText, label: "Minhas provas", id: "provas" },
+  { icone: ClipboardList, label: "Minhas atividades", id: "atividades" },
+]
+
+function Sidebar({ paginaAtiva, onNavegar, usuario, onSair, aberto, onToggle, onAbrirPerfil }) {
   const largura = aberto ? "220px" : "64px"
+  const ehProfessor = usuario.perfil === "PROFESSOR"
+  const itens = ehProfessor ? ITENS_PROFESSOR : ITENS_ALUNO
+  const rotuloPerfil = ehProfessor ? "Professor" : "Aluno"
 
   return (
     <div style={{ ...s.sidebar, width: largura }}>
@@ -13,13 +29,12 @@ function Sidebar({ paginaAtiva, onNavegar, usuario, onSair, aberto, onToggle }) 
       <div style={s.logoRow}>
         {aberto && (
           <div style={s.logo}>
-            <div style={s.logoIcone}>A</div>
-            <span style={s.logoTexto}>AvaliaFácil</span>
+            <Logo dark height={26} />
           </div>
         )}
 
-        <button style={s.btnToggle} onClick={onToggle}>
-          <PanelLeft size={18} color="#5F5E5A" />
+        <button style={s.btnToggle} className="nexos-icon-btn" onClick={onToggle}>
+          <PanelLeft size={18} color="rgba(255,255,255,0.55)" />
         </button>
       </div>
 
@@ -32,6 +47,7 @@ function Sidebar({ paginaAtiva, onNavegar, usuario, onSair, aberto, onToggle }) 
               key={id}
               onClick={() => onNavegar(id)}
               title={!aberto ? label : undefined}
+              className={ativo ? "" : "nexos-nav-item"}
               style={{
                 ...s.itemNav,
                 ...(ativo ? s.itemNavAtivo : s.itemNavInativo),
@@ -54,29 +70,28 @@ function Sidebar({ paginaAtiva, onNavegar, usuario, onSair, aberto, onToggle }) 
       >
         {aberto ? (
           <>
-            <div style={s.usuarioInfo}>
-              <div style={s.avatar}>
-                {usuario.nome.charAt(0).toUpperCase()}
-              </div>
+            <button style={s.usuarioInfo} className="nexos-icon-btn" onClick={onAbrirPerfil} title="Ver perfil">
+              <AvatarDisplay nome={usuario.nome} foto={usuario.foto} avatarPreset={usuario.avatarPreset} size={34} />
 
               <div>
                 <div style={s.usuarioNome}>{usuario.nome}</div>
-                <div style={s.usuarioPerfil}>Professor</div>
+                <div style={s.usuarioPerfil}>{rotuloPerfil}</div>
               </div>
-            </div>
+            </button>
 
             <button
               onClick={onSair}
               style={s.btnSair}
+              className="nexos-icon-btn"
               title="Sair"
             >
               <LogOut size={16} />
             </button>
           </>
         ) : (
-          <div style={s.avatar} title={usuario.nome}>
-            {usuario.nome.charAt(0).toUpperCase()}
-          </div>
+          <button style={s.avatarBtn} className="nexos-icon-btn" onClick={onAbrirPerfil} title="Ver perfil">
+            <AvatarDisplay nome={usuario.nome} foto={usuario.foto} avatarPreset={usuario.avatarPreset} size={34} />
+          </button>
         )}
       </div>
 
@@ -88,11 +103,10 @@ const s = {
 
   sidebar: {
     minHeight: "100vh",
-    background: "rgba(255,255,255,.65)",
+    background: "rgba(4, 9, 24, 0.92)",
     backdropFilter: "blur(24px)",
     WebkitBackdropFilter: "blur(24px)",
-    borderRight: "1px solid #E4E2D9",
-    boxShadow: "0 8px 32px rgba(31,92,107,.08)",
+    borderRight: "1px solid rgba(255,255,255,0.07)",
     display: "flex",
     flexDirection: "column",
     padding: "20px 12px",
@@ -109,33 +123,12 @@ const s = {
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: "28px",
-    minHeight: "36px",
+    minHeight: "34px",
   },
 
   logo: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-  },
-
-  logoIcone: {
-    width: "34px",
-    height: "34px",
-    borderRadius: "10px",
-    background: "#040220",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: "16px",
-  },
-
-  logoTexto: {
-    fontSize: "17px",
-    fontWeight: "600",
-    color: "#040220",
-    whiteSpace: "nowrap",
   },
 
   btnToggle: {
@@ -166,18 +159,19 @@ const s = {
     fontFamily: "inherit",
     fontSize: "14px",
     fontWeight: "500",
-    transition: "all .2s ease",
+    transition: "background-color .25s ease, color .25s ease, box-shadow .25s ease, transform .15s ease",
     whiteSpace: "nowrap",
   },
 
   itemNavAtivo: {
-    background: "#1F5C6B",
+    background: "var(--nexos-blue)",
     color: "#FFFFFF",
+    boxShadow: "0 4px 16px rgba(16, 94, 220, 0.45)",
   },
 
   itemNavInativo: {
     background: "transparent",
-    color: "#5F5E5A",
+    color: "rgba(255,255,255,0.55)",
   },
 
   itemLabel: {
@@ -188,7 +182,7 @@ const s = {
     display: "flex",
     alignItems: "center",
     padding: "14px 6px",
-    borderTop: "1px solid #E4E2D9",
+    borderTop: "1px solid rgba(255,255,255,0.07)",
     marginTop: "18px",
     gap: "8px",
   },
@@ -198,26 +192,29 @@ const s = {
     alignItems: "center",
     gap: "10px",
     overflow: "hidden",
+    background: "none",
+    border: "none",
+    padding: "4px",
+    borderRadius: "10px",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    textAlign: "left",
+    flex: 1,
+    minWidth: 0,
   },
 
-  avatar: {
-    width: "34px",
-    height: "34px",
-    minWidth: "34px",
+  avatarBtn: {
+    background: "none",
+    border: "none",
+    padding: 0,
     borderRadius: "50%",
-    background: "#1F5C6B",
-    color: "#FFFFFF",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "600",
-    fontSize: "14px",
+    cursor: "pointer",
   },
 
   usuarioNome: {
     fontSize: "13px",
     fontWeight: "600",
-    color: "#040220",
+    color: "#ffffff",
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -225,14 +222,14 @@ const s = {
 
   usuarioPerfil: {
     fontSize: "12px",
-    color: "#5F5E5A",
+    color: "rgba(255,255,255,0.5)",
   },
 
   btnSair: {
     background: "transparent",
     border: "none",
     cursor: "pointer",
-    color: "#5F5E5A",
+    color: "rgba(255,255,255,0.55)",
     borderRadius: "8px",
     padding: "6px",
     display: "flex",

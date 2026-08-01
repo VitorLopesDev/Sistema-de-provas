@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { UserRound, Mail, Eye, EyeOff, Lock } from "lucide-react";
 import { authService } from "../services/api";
+import Logo from "../components/Logo"
 
 function Cadastro({ onCadastro, onIrParaLogin }) {
   const [nome, setNome]                                   = useState("")
@@ -57,8 +58,7 @@ function Cadastro({ onCadastro, onIrParaLogin }) {
       <div style={s.card}>
 
         <div style={s.logo}>
-          <div style={s.logoIcone}>A</div>
-          <span style={s.logoTexto}>AvaliaFácil</span>
+          <Logo height={30} />
         </div>
 
         <h1 style={s.titulo}>Criar conta</h1>
@@ -184,6 +184,7 @@ function Cadastro({ onCadastro, onIrParaLogin }) {
           <button
             type="submit"
             disabled={carregando}
+            className="nexos-btn"
             style={{ ...s.btnEntrar, opacity: carregando ? 0.7 : 1 }}
           >
             {carregando ? "Cadastrando..." : "Cadastrar"}
@@ -193,7 +194,7 @@ function Cadastro({ onCadastro, onIrParaLogin }) {
 
         <p style={s.rodape}>
           Já tem uma conta?{" "}
-          <span style={s.link} onClick={onIrParaLogin}>Fazer login</span>
+          <span style={s.link} className="nexos-link" onClick={onIrParaLogin}>Fazer login</span>
         </p>
 
       </div>
@@ -204,7 +205,7 @@ function Cadastro({ onCadastro, onIrParaLogin }) {
 const s = {
   pagina: {
     minHeight: "100vh",
-    background: "linear-gradient(135deg, #F7F6F2 0%, #EDEBE3 50%, #E4E2D9 100%)",
+    background: "linear-gradient(135deg, var(--nexos-bg) 0%, var(--nexos-bg-alt) 50%, var(--nexos-border) 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -219,7 +220,7 @@ const s = {
   padding: "32px 36px",
   width: "100%",
   maxWidth: "420px",
-  boxShadow: "0 8px 32px rgba(31, 92, 107, 0.10)",
+  boxShadow: "0 8px 32px rgba(16, 94, 220, 0.10)",
   },
   logo: {
   display: "flex",
@@ -228,32 +229,15 @@ const s = {
   marginBottom: "20px",
   justifyContent: "center",
   },
-  logoIcone: {
-    width: "36px",
-    height: "36px",
-    background: "#040220",
-    borderRadius: "10px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: "18px",
-  },
-  logoTexto: {
-    fontSize: "18px",
-    fontWeight: "600",
-    color: "#040220",
-  },
   titulo: {
     fontSize: "24px",
     fontWeight: "700",
-    color: "#040220",
+    color: "var(--nexos-navy)",
     margin: "0 0 6px",
   },
   subtitulo: {
   fontSize: "13px",
-  color: "#5F5E5A",
+  color: "var(--nexos-gray)",
   margin: "0 0 18px",
   },
   form: {
@@ -269,7 +253,7 @@ const s = {
   label: {
     fontSize: "13px",
     fontWeight: "600",
-    color: "#040220",
+    color: "var(--nexos-navy)",
   },
   campoWrapper: {
     position: "relative",
@@ -279,16 +263,16 @@ const s = {
   icone: {
     position: "absolute",
     left: "14px",
-    color: "#5F5E5A",
+    color: "var(--nexos-gray)",
     pointerEvents: "none",
   },
   input: {
   width: "100%",
   padding: "10px 14px 10px 40px",
-  border: "1.5px solid #E4E2D9",
+  border: "1.5px solid var(--nexos-border)",
   borderRadius: "10px",
   fontSize: "14px",
-  color: "#040220",
+  color: "var(--nexos-navy)",
   background: "rgba(255,255,255,0.7)",
   outline: "none",
   boxSizing: "border-box",
@@ -300,14 +284,14 @@ const s = {
     background: "none",
     border: "none",
     cursor: "pointer",
-    color: "#5F5E5A",
+    color: "var(--nexos-gray)",
     display: "flex",
     alignItems: "center",
     padding: "0",
   },
   perfilAjuda: {
   fontSize: "11.5px",
-  color: "#5F5E5A",
+  color: "var(--nexos-gray)",
   margin: "-2px 0 1px",
   },
   perfilWrapper: {
@@ -318,9 +302,9 @@ const s = {
   flex: 1,
   padding: "8px",
   borderRadius: "10px",
-  border: "1.5px solid #E4E2D9",
+  border: "1.5px solid var(--nexos-border)",
   background: "rgba(255,255,255,0.5)",
-  color: "#5F5E5A",
+  color: "var(--nexos-gray)",
   fontSize: "13px",
   fontWeight: "500",
   cursor: "pointer",
@@ -328,8 +312,8 @@ const s = {
   outline: "none",
   },
   btnPerfilAtivo: {
-    background: "#1F5C6B",
-    borderColor: "#1F5C6B",
+    background: "var(--nexos-blue)",
+    borderColor: "var(--nexos-blue)",
     color: "#fff",
   },
   termosWrapper: {
@@ -342,22 +326,22 @@ const s = {
     marginTop: "2px",
     width: "15px",
     height: "15px",
-    accentColor: "#1F5C6B",
+    accentColor: "var(--nexos-blue)",
     cursor: "pointer",
     flexShrink: 0,
   },
   termosTexto: {
     fontSize: "12.5px",
-    color: "#5F5E5A",
+    color: "var(--nexos-gray)",
     lineHeight: "1.4",
   },
   erro: {
-    color: "#B23A3A",
+    color: "var(--nexos-error)",
     fontSize: "13px",
     margin: "0",
   },
   btnEntrar: {
-  background: "#040220",
+  background: "linear-gradient(120deg, var(--nexos-blue), var(--nexos-purple))",
   color: "#fff",
   border: "none",
   borderRadius: "10px",
@@ -366,16 +350,18 @@ const s = {
   fontWeight: "600",
   cursor: "pointer",
   marginTop: "2px",
+  fontFamily: "inherit",
+  boxShadow: "0 8px 22px rgba(16, 94, 220, 0.28)",
   },
   rodape: {
   textAlign: "center",
   fontSize: "13px",
-  color: "#5F5E5A",
+  color: "var(--nexos-gray)",
   marginTop: "16px",
   marginBottom: "0",
   },
   link: {
-    color: "#1F5C6B",
+    color: "var(--nexos-blue)",
     fontWeight: "500",
     cursor: "pointer",
   },
