@@ -1,0 +1,43 @@
+export const PROVAS_SIMULADAS = [
+  {
+    id: 1,
+    titulo: "Banco de Dados I — Prova 2",
+    turma: "P5 — Ciência da Computação",
+    dataInicio: "07/07/2025 08:00",
+    dataFim: "07/07/2025 09:30",
+    tempoLimite: 90,
+    totalAlunos: 5,
+    alunos: [
+      { id: 1, nome: "Maria Souza",    status: "enviado",    horarioEnvio: "08:47",  alertas: 0 },
+      { id: 2, nome: "João Pedro",     status: "enviado",    horarioEnvio: "09:12",  alertas: 2 },
+      { id: 3, nome: "Ana Lima",       status: "enviado",    horarioEnvio: "09:30",  alertas: 0 },
+      { id: 4, nome: "Carlos Silva",   status: "pendente",   horarioEnvio: null,     alertas: 1 },
+      { id: 5, nome: "Beatriz Costa",  status: "pendente",   horarioEnvio: null,     alertas: 0 },
+    ],
+  },
+  {
+    id: 2,
+    titulo: "Linguagem de Programação II — Prova 2",
+    turma: "P3 — Ciência da Computação",
+    dataInicio: "06/07/2025 10:00",
+    dataFim: "06/07/2025 11:00",
+    tempoLimite: 60,
+    totalAlunos: 4,
+    alunos: [
+      { id: 1, nome: "Lucas Mendes",   status: "enviado",    horarioEnvio: "10:45",  alertas: 0 },
+      { id: 2, nome: "Fernanda Rocha", status: "enviado",    horarioEnvio: "10:58",  alertas: 3 },
+      { id: 3, nome: "Rafael Torres",  status: "enviado",    horarioEnvio: "11:00",  alertas: 1 },
+      { id: 4, nome: "Julia Neves",    status: "enviado",    horarioEnvio: "10:32",  alertas: 0 },
+    ],
+  },
+  {
+    id: 3,
+    titulo: "Estrutura de Dados — Prova 1",
+    turma: "P4 — Ciência da Computação",
+    dataInicio: "10/07/2025 14:00",
+    dataFim: "10/07/2025 15:30",
+    tempoLimite: 90,
+    totalAlunos: 6,
+    alunos: [],
+  },
+]
