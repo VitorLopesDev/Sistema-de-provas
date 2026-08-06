@@ -17,6 +17,15 @@ export const DISCIPLINAS_SIMULADAS = [
       { id: 6, nome: "SQL" },
     ],
   },
+  {
+    id: 3,
+    nome: "Estrutura de Dados",
+    assuntos: [
+      { id: 7, nome: "Listas encadeadas" },
+      { id: 8, nome: "Árvores" },
+      { id: 9, nome: "Pilhas e filas" },
+    ],
+  },
 ]
 
 export const DIFICULDADES = [
