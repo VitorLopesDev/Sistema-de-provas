@@ -1,10 +1,8 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Sidebar from "../components/Sidebar"
 import { Clock, AlertTriangle, CheckCircle, ChevronRight, ArrowLeft, Eye, Zap, Calendar, Archive, Pencil, Trash2, Send } from "lucide-react"
 import { PROVAS_SIMULADAS } from "../data/provasSimuladas"
-import { DISCIPLINAS_SIMULADAS } from "../data/disciplinasSimuladas"
-import { QUESTOES_SIMULADAS } from "../data/questoesSimuladas"
-import { TURMAS_SIMULADAS } from "../data/turmasSimuladas"
+import { turmaService, disciplinaService, questaoService } from "../services/api"
 import PainelHome from "./PainelHome"
 import Turmas from "./Turmas"
 import MinhasDisciplinas from "./MinhasDisciplinas"
@@ -201,9 +199,38 @@ function DetalheProva({ prova, onVoltar, onExcluir, onLiberar }) {
 function PainelProfessor({ usuario, onSair, onAtualizarUsuario }) {
   const [paginaAtiva, setPaginaAtiva] = useState("home")
   const [provas, setProvas] = useState(PROVAS_SIMULADAS)
-  const [disciplinas, setDisciplinas] = useState(DISCIPLINAS_SIMULADAS)
-  const [questoes, setQuestoes] = useState(QUESTOES_SIMULADAS)
-  const [turmas, setTurmas] = useState(TURMAS_SIMULADAS)
+  const [disciplinas, setDisciplinas] = useState([])
+  const [disciplinasCarregando, setDisciplinasCarregando] = useState(true)
+  const [disciplinasErro, setDisciplinasErro] = useState("")
+
+  const [questoes, setQuestoes] = useState([])
+  const [questoesCarregando, setQuestoesCarregando] = useState(true)
+  const [questoesErro, setQuestoesErro] = useState("")
+
+  useEffect(() => {
+    disciplinaService
+      .listarMinhas()
+      .then(setDisciplinas)
+      .catch((err) => setDisciplinasErro(err.message || "Não foi possível carregar as disciplinas."))
+      .finally(() => setDisciplinasCarregando(false))
+
+    questaoService
+      .listarMinhas()
+      .then(setQuestoes)
+      .catch((err) => setQuestoesErro(err.message || "Não foi possível carregar as questões."))
+      .finally(() => setQuestoesCarregando(false))
+  }, [])
+  const [turmas, setTurmas] = useState([])
+  const [turmasCarregando, setTurmasCarregando] = useState(true)
+  const [turmasErro, setTurmasErro] = useState("")
+
+  useEffect(() => {
+    turmaService
+      .listarMinhas()
+      .then(setTurmas)
+      .catch((err) => setTurmasErro(err.message || "Não foi possível carregar as turmas."))
+      .finally(() => setTurmasCarregando(false))
+  }, [])
   const [provaDetalhe, setProvaDetalhe] = useState(null)
   const [sidebarAberto, setSidebarAberto] = useState(true)
   const [turmasIniciarCriando, setTurmasIniciarCriando] = useState(false)
@@ -247,6 +274,8 @@ function PainelProfessor({ usuario, onSair, onAtualizarUsuario }) {
         <MinhasDisciplinas
           disciplinas={disciplinas}
           setDisciplinas={setDisciplinas}
+          carregando={disciplinasCarregando}
+          erro={disciplinasErro}
           iniciarCriando={disciplinasIniciarCriando}
         />
       )
@@ -258,6 +287,9 @@ function PainelProfessor({ usuario, onSair, onAtualizarUsuario }) {
           setDisciplinas={setDisciplinas}
           questoes={questoes}
           setQuestoes={setQuestoes}
+          carregando={questoesCarregando}
+          erro={questoesErro}
+          disciplinasCarregando={disciplinasCarregando}
           iniciarCriando={questoesIniciarCriando}
           onIrParaDisciplinas={() => navegar("disciplinas", { criar: true })}
         />
@@ -281,6 +313,8 @@ function PainelProfessor({ usuario, onSair, onAtualizarUsuario }) {
         <Turmas
           turmas={turmas}
           setTurmas={setTurmas}
+          carregando={turmasCarregando}
+          erro={turmasErro}
           iniciarCriando={turmasIniciarCriando}
           onProvaSelecionada={() => (disciplinas.length === 0 ? tentarCriarProva() : navegar("provas"))}
         />

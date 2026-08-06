@@ -5,6 +5,7 @@ import {
 import { DIFICULDADES } from "../data/disciplinasSimuladas"
 import AvisoSemDisciplina from "../components/AvisoSemDisciplina"
 import NovaQuestao from "./NovaQuestao"
+import { questaoService } from "../services/api"
 
 function badgeDificuldade(id) {
   return DIFICULDADES.find((d) => d.id === id) || DIFICULDADES[0]
@@ -119,7 +120,7 @@ function DetalheQuestao({ questao, onFechar, onEditar, onExcluir }) {
 }
 
 // ── Lista principal ─────────────────────────────────────────────────────────
-function ListaQuestoes({ questoes, onAbrir, onCriar }) {
+function ListaQuestoes({ questoes, carregando, erro, onAbrir, onCriar }) {
   const [busca, setBusca] = useState("")
   const [ordem, setOrdem] = useState("recentes")
 
@@ -170,7 +171,11 @@ function ListaQuestoes({ questoes, onAbrir, onCriar }) {
         </div>
       </div>
 
-      {filtradas.length === 0 ? (
+      {carregando ? (
+        <div style={s.vazio}>Carregando questões...</div>
+      ) : erro ? (
+        <div style={s.vazio}>{erro}</div>
+      ) : filtradas.length === 0 ? (
         <div style={s.vazio}>Nenhuma questão encontrada.</div>
       ) : (
         <div style={s.grid}>
@@ -199,7 +204,7 @@ function ListaQuestoes({ questoes, onAbrir, onCriar }) {
 }
 
 // ── Componente principal ───────────────────────────────────────────────────
-function BancoDeQuestoes({ disciplinas, setDisciplinas, questoes, setQuestoes, iniciarCriando, onIrParaDisciplinas }) {
+function BancoDeQuestoes({ disciplinas, setDisciplinas, questoes, setQuestoes, carregando, erro, disciplinasCarregando, iniciarCriando, onIrParaDisciplinas }) {
   const [modo, setModo] = useState(iniciarCriando ? "criar" : "lista")
   const [questaoAberta, setQuestaoAberta] = useState(null)
   const [questaoEditando, setQuestaoEditando] = useState(null)
@@ -215,8 +220,13 @@ function BancoDeQuestoes({ disciplinas, setDisciplinas, questoes, setQuestoes, i
     setModo("lista")
   }
 
-  function handleExcluir(id) {
-    setQuestoes(questoes.filter((q) => q.id !== id))
+  async function handleExcluir(id) {
+    try {
+      await questaoService.deletar(id)
+      setQuestoes(questoes.filter((q) => q.id !== id))
+    } catch (err) {
+      window.alert(err.message || "Não foi possível excluir a questão.")
+    }
   }
 
   if (modo === "criar") {
@@ -224,6 +234,7 @@ function BancoDeQuestoes({ disciplinas, setDisciplinas, questoes, setQuestoes, i
       <NovaQuestao
         disciplinas={disciplinas}
         setDisciplinas={setDisciplinas}
+        disciplinasCarregando={disciplinasCarregando}
         onSalvar={handleSalvarNova}
         onCancelar={() => setModo("lista")}
         onIrParaDisciplinas={onIrParaDisciplinas}
@@ -236,6 +247,7 @@ function BancoDeQuestoes({ disciplinas, setDisciplinas, questoes, setQuestoes, i
       <NovaQuestao
         disciplinas={disciplinas}
         setDisciplinas={setDisciplinas}
+        disciplinasCarregando={disciplinasCarregando}
         questaoInicial={questaoEditando}
         onSalvar={handleSalvarEdicao}
         onCancelar={() => { setQuestaoEditando(null); setModo("lista") }}
@@ -246,7 +258,7 @@ function BancoDeQuestoes({ disciplinas, setDisciplinas, questoes, setQuestoes, i
 
   return (
     <>
-      {disciplinas.length === 0 && questoes.length === 0 ? (
+      {!disciplinasCarregando && !carregando && disciplinas.length === 0 && questoes.length === 0 ? (
         <div style={s.pagina}>
           <h1 style={s.titulo}>Banco de Questões</h1>
           <AvisoSemDisciplina acao="cadastrar uma questão" onAdicionar={onIrParaDisciplinas} />
@@ -254,6 +266,8 @@ function BancoDeQuestoes({ disciplinas, setDisciplinas, questoes, setQuestoes, i
       ) : (
         <ListaQuestoes
           questoes={questoes}
+          carregando={carregando}
+          erro={erro}
           onAbrir={setQuestaoAberta}
           onCriar={() => setModo("criar")}
         />

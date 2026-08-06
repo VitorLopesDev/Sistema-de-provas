@@ -5,9 +5,10 @@ import {
 } from "lucide-react"
 import { TURNOS, NIVEIS } from "../data/turmasSimuladas"
 import { PROVAS_SIMULADAS } from "../data/provasSimuladas"
+import { turmaService } from "../services/api"
 
 // ── Tela: Lista de turmas ──────────────────────────────────────────────────
-function ListaTurmas({ turmas, onVerDetalhe, onCriar }) {
+function ListaTurmas({ turmas, carregando, erro, onVerDetalhe, onCriar }) {
   return (
     <div style={s.pagina}>
       <div style={s.cabecalho}>
@@ -20,7 +21,11 @@ function ListaTurmas({ turmas, onVerDetalhe, onCriar }) {
         </button>
       </div>
 
-      {turmas.length === 0 ? (
+      {carregando ? (
+        <div style={s.vazio}>Carregando turmas...</div>
+      ) : erro ? (
+        <div style={s.vazio}>{erro}</div>
+      ) : turmas.length === 0 ? (
         <div style={s.vazio}>Nenhuma turma criada ainda.</div>
       ) : (
         <div style={s.grid}>
@@ -47,19 +52,28 @@ function CriarTurma({ onCancelar, onCriar }) {
   const [disciplina, setDisciplina] = useState("")
   const [turno, setTurno] = useState("")
   const [nivel, setNivel] = useState("")
+  const [enviando, setEnviando] = useState(false)
+  const [erro, setErro] = useState("")
 
   const valido = nomeTurma.trim() && disciplina.trim() && turno && nivel
 
-  function handleCriar() {
-    if (!valido) return
-    onCriar({
-      id: Date.now(),
-      disciplina,
-      nome: nomeTurma,
-      turno,
-      nivel,
-      totalAlunos: 0,
-    })
+  async function handleCriar() {
+    if (!valido || enviando) return
+    setErro("")
+    setEnviando(true)
+
+    try {
+      const turmaCriada = await turmaService.criar({
+        nome: nomeTurma,
+        disciplina,
+        turno,
+        nivel,
+      })
+      onCriar(turmaCriada)
+    } catch (err) {
+      setErro(err.message || "Não foi possível criar a turma.")
+      setEnviando(false)
+    }
   }
 
   return (
@@ -107,16 +121,22 @@ function CriarTurma({ onCancelar, onCriar }) {
         </div>
       </div>
 
+      {erro && <div style={s.erro}>{erro}</div>}
+
       <div style={s.formBotoes}>
         <button style={s.btnCancelar} className="nexos-btn" onClick={onCancelar}>
           <X size={15} /> Cancelar
         </button>
         <button
-          style={{ ...s.btnCriar, opacity: valido ? 1 : 0.5, cursor: valido ? "pointer" : "not-allowed" }}
+          style={{
+            ...s.btnCriar,
+            opacity: valido && !enviando ? 1 : 0.5,
+            cursor: valido && !enviando ? "pointer" : "not-allowed",
+          }}
           className="nexos-btn"
           onClick={handleCriar}
         >
-          <Check size={15} /> Criar turma
+          <Check size={15} /> {enviando ? "Criando..." : "Criar turma"}
         </button>
       </div>
     </div>
@@ -244,7 +264,7 @@ function DetalheTurma({ turma, onNovaProva }) {
 }
 
 // ── Componente principal ───────────────────────────────────────────────────
-function Turmas({ turmas, setTurmas, iniciarCriando, onProvaSelecionada }) {
+function Turmas({ turmas, setTurmas, carregando, erro, iniciarCriando, onProvaSelecionada }) {
   const [modo, setModo] = useState(iniciarCriando ? "criar" : "lista")
   const [turmaAtiva, setTurmaAtiva] = useState(null)
 
@@ -268,6 +288,8 @@ function Turmas({ turmas, setTurmas, iniciarCriando, onProvaSelecionada }) {
   return (
     <ListaTurmas
       turmas={turmas}
+      carregando={carregando}
+      erro={erro}
       onCriar={() => setModo("criar")}
       onVerDetalhe={(turma) => { setTurmaAtiva(turma); setModo("detalhe") }}
     />
@@ -473,6 +495,11 @@ const s = {
     display: "flex",
     justifyContent: "space-between",
     marginTop: "24px",
+  },
+  erro: {
+    fontSize: "13px",
+    color: "#d33",
+    marginTop: "-8px",
   },
   tabs: {
     display: "flex",

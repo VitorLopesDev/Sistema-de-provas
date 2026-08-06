@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { Library, Plus, X, ChevronDown, Pencil, Trash2, Check } from "lucide-react"
+import { disciplinaService, assuntoService } from "../services/api"
 
 const TEMAS = [
   { icone: "var(--nexos-blue)", bg: "var(--nexos-icon-bg)" },
@@ -11,6 +12,8 @@ const TEMAS = [
 function FormNovaDisciplina({ onCancelar, onSalvar }) {
   const [nome, setNome] = useState("")
   const [assuntos, setAssuntos] = useState([""])
+  const [enviando, setEnviando] = useState(false)
+  const [erro, setErro] = useState("")
 
   function atualizarAssunto(i, valor) {
     const novos = [...assuntos]
@@ -24,14 +27,25 @@ function FormNovaDisciplina({ onCancelar, onSalvar }) {
 
   const valido = nome.trim().length > 0
 
-  function salvar() {
-    if (!valido) return
-    const assuntosValidos = assuntos.map((a) => a.trim()).filter(Boolean)
-    onSalvar({
-      id: Date.now(),
-      nome: nome.trim(),
-      assuntos: assuntosValidos.map((a, i) => ({ id: Date.now() + i + 1, nome: a })),
-    })
+  async function salvar() {
+    if (!valido || enviando) return
+    setErro("")
+    setEnviando(true)
+
+    try {
+      const disciplinaCriada = await disciplinaService.criar({ nome: nome.trim() })
+
+      const nomesAssuntos = assuntos.map((a) => a.trim()).filter(Boolean)
+      const assuntosCriados = []
+      for (const nomeAssunto of nomesAssuntos) {
+        assuntosCriados.push(await assuntoService.criar(disciplinaCriada.id, { nome: nomeAssunto }))
+      }
+
+      onSalvar({ ...disciplinaCriada, assuntos: assuntosCriados })
+    } catch (err) {
+      setErro(err.message || "Não foi possível salvar a disciplina.")
+      setEnviando(false)
+    }
   }
 
   return (
@@ -73,16 +87,22 @@ function FormNovaDisciplina({ onCancelar, onSalvar }) {
         </button>
       </div>
 
+      {erro && <p style={s.erro}>{erro}</p>}
+
       <div style={s.formBotoes}>
         <button style={s.btnCancelar} className="nexos-btn" onClick={onCancelar}>
           <X size={15} /> Cancelar
         </button>
         <button
-          style={{ ...s.btnCriar, opacity: valido ? 1 : 0.5, cursor: valido ? "pointer" : "not-allowed" }}
+          style={{
+            ...s.btnCriar,
+            opacity: valido && !enviando ? 1 : 0.5,
+            cursor: valido && !enviando ? "pointer" : "not-allowed",
+          }}
           className="nexos-btn"
           onClick={salvar}
         >
-          <Check size={15} /> Salvar disciplina
+          <Check size={15} /> {enviando ? "Salvando..." : "Salvar disciplina"}
         </button>
       </div>
     </div>
@@ -258,7 +278,7 @@ function LinhaDisciplina({ disciplina, tema, aberta, onToggle, onEditar, onExclu
 }
 
 // ── Componente principal ───────────────────────────────────────────────────
-function MinhasDisciplinas({ disciplinas, setDisciplinas, iniciarCriando }) {
+function MinhasDisciplinas({ disciplinas, setDisciplinas, carregando, erro, iniciarCriando }) {
   const [criando, setCriando] = useState(!!iniciarCriando)
   const [abertaId, setAbertaId] = useState(null)
 
@@ -267,33 +287,58 @@ function MinhasDisciplinas({ disciplinas, setDisciplinas, iniciarCriando }) {
     setCriando(false)
   }
 
-  function handleEditar(id, novoNome) {
-    setDisciplinas(disciplinas.map((d) => (d.id === id ? { ...d, nome: novoNome } : d)))
+  async function handleEditar(id, novoNome) {
+    try {
+      const atualizada = await disciplinaService.atualizar(id, { nome: novoNome })
+      setDisciplinas(disciplinas.map((d) => (d.id === id ? { ...d, nome: atualizada.nome } : d)))
+    } catch (err) {
+      window.alert(err.message || "Não foi possível editar a disciplina.")
+    }
   }
 
-  function handleExcluir(id) {
-    setDisciplinas(disciplinas.filter((d) => d.id !== id))
-    if (abertaId === id) setAbertaId(null)
+  async function handleExcluir(id) {
+    try {
+      await disciplinaService.deletar(id)
+      setDisciplinas(disciplinas.filter((d) => d.id !== id))
+      if (abertaId === id) setAbertaId(null)
+    } catch (err) {
+      window.alert(err.message || "Não foi possível excluir a disciplina.")
+    }
   }
 
-  function handleEditarAssunto(disciplinaId, assuntoId, novoNome) {
-    setDisciplinas(disciplinas.map((d) =>
-      d.id === disciplinaId
-        ? { ...d, assuntos: d.assuntos.map((a) => (a.id === assuntoId ? { ...a, nome: novoNome } : a)) }
-        : d
-    ))
+  async function handleEditarAssunto(disciplinaId, assuntoId, novoNome) {
+    try {
+      const atualizado = await assuntoService.atualizar(assuntoId, { nome: novoNome })
+      setDisciplinas(disciplinas.map((d) =>
+        d.id === disciplinaId
+          ? { ...d, assuntos: d.assuntos.map((a) => (a.id === assuntoId ? { ...a, nome: atualizado.nome } : a)) }
+          : d
+      ))
+    } catch (err) {
+      window.alert(err.message || "Não foi possível editar o assunto.")
+    }
   }
 
-  function handleExcluirAssunto(disciplinaId, assuntoId) {
-    setDisciplinas(disciplinas.map((d) =>
-      d.id === disciplinaId ? { ...d, assuntos: d.assuntos.filter((a) => a.id !== assuntoId) } : d
-    ))
+  async function handleExcluirAssunto(disciplinaId, assuntoId) {
+    try {
+      await assuntoService.deletar(assuntoId)
+      setDisciplinas(disciplinas.map((d) =>
+        d.id === disciplinaId ? { ...d, assuntos: d.assuntos.filter((a) => a.id !== assuntoId) } : d
+      ))
+    } catch (err) {
+      window.alert(err.message || "Não foi possível excluir o assunto.")
+    }
   }
 
-  function handleAdicionarAssunto(disciplinaId, nome) {
-    setDisciplinas(disciplinas.map((d) =>
-      d.id === disciplinaId ? { ...d, assuntos: [...d.assuntos, { id: Date.now(), nome }] } : d
-    ))
+  async function handleAdicionarAssunto(disciplinaId, nome) {
+    try {
+      const novoAssunto = await assuntoService.criar(disciplinaId, { nome })
+      setDisciplinas(disciplinas.map((d) =>
+        d.id === disciplinaId ? { ...d, assuntos: [...d.assuntos, novoAssunto] } : d
+      ))
+    } catch (err) {
+      window.alert(err.message || "Não foi possível adicionar o assunto.")
+    }
   }
 
   return (
@@ -312,7 +357,11 @@ function MinhasDisciplinas({ disciplinas, setDisciplinas, iniciarCriando }) {
 
       {criando && <FormNovaDisciplina onCancelar={() => setCriando(false)} onSalvar={handleSalvar} />}
 
-      {disciplinas.length === 0 && !criando ? (
+      {carregando ? (
+        <div style={s.vazio}>Carregando disciplinas...</div>
+      ) : erro ? (
+        <div style={s.vazio}>{erro}</div>
+      ) : disciplinas.length === 0 && !criando ? (
         <div style={s.vazio}>Nenhuma disciplina cadastrada ainda.</div>
       ) : (
         <div style={s.lista}>
@@ -380,6 +429,7 @@ const s = {
     fontFamily: "inherit", padding: 0, width: "fit-content",
   },
   formBotoes: { display: "flex", justifyContent: "space-between", marginTop: "6px" },
+  erro: { fontSize: "13px", color: "#d33", margin: 0 },
 
   lista: { display: "flex", flexDirection: "column", gap: "12px" },
   linhaWrap: {},

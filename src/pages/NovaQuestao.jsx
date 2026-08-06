@@ -3,8 +3,9 @@ import { ChevronRight, ChevronDown, Plus, Check, X } from "lucide-react"
 import { DIFICULDADES } from "../data/disciplinasSimuladas"
 import AvisoSemDisciplina from "../components/AvisoSemDisciplina"
 import ModalAdicionarRapido from "../components/ModalAdicionarRapido"
+import { questaoService, disciplinaService, assuntoService } from "../services/api"
 
-function NovaQuestao({ disciplinas, setDisciplinas, questaoInicial, onSalvar, onCancelar, onIrParaDisciplinas }) {
+function NovaQuestao({ disciplinas, setDisciplinas, disciplinasCarregando, questaoInicial, onSalvar, onCancelar, onIrParaDisciplinas }) {
   const editando = !!questaoInicial
   const [disciplinaId, setDisciplinaId] = useState(questaoInicial ? String(questaoInicial.disciplinaId) : "")
   const [assuntoId, setAssuntoId] = useState(questaoInicial ? String(questaoInicial.assuntoId) : "")
@@ -18,6 +19,17 @@ function NovaQuestao({ disciplinas, setDisciplinas, questaoInicial, onSalvar, on
   )
   const [modalDisciplina, setModalDisciplina] = useState(false)
   const [modalAssunto, setModalAssunto] = useState(false)
+  const [enviando, setEnviando] = useState(false)
+  const [erro, setErro] = useState("")
+
+  if (disciplinasCarregando) {
+    return (
+      <div style={s.pagina}>
+        <h1 style={s.titulo}>Nova questão</h1>
+        <div style={{ fontSize: "13.5px", color: "var(--nexos-gray)" }}>Carregando disciplinas...</div>
+      </div>
+    )
+  }
 
   if (disciplinas.length === 0) {
     return (
@@ -37,43 +49,56 @@ function NovaQuestao({ disciplinas, setDisciplinas, questaoInicial, onSalvar, on
     setAlternativas(novas)
   }
 
-  function handleNovaDisciplina(nome) {
-    const nova = { id: Date.now(), nome, assuntos: [] }
-    setDisciplinas([nova, ...disciplinas])
-    setDisciplinaId(String(nova.id))
-    setAssuntoId("")
-    setModalDisciplina(false)
+  async function handleNovaDisciplina(nome) {
+    try {
+      const nova = await disciplinaService.criar({ nome })
+      setDisciplinas([{ ...nova, assuntos: [] }, ...disciplinas])
+      setDisciplinaId(String(nova.id))
+      setAssuntoId("")
+      setModalDisciplina(false)
+    } catch (err) {
+      window.alert(err.message || "Não foi possível criar a disciplina.")
+    }
   }
 
-  function handleNovoAssunto(nome) {
-    const novoAssunto = { id: Date.now(), nome }
-    setDisciplinas(disciplinas.map((d) =>
-      d.id === Number(disciplinaId) ? { ...d, assuntos: [...d.assuntos, novoAssunto] } : d
-    ))
-    setAssuntoId(String(novoAssunto.id))
-    setModalAssunto(false)
+  async function handleNovoAssunto(nome) {
+    try {
+      const novoAssunto = await assuntoService.criar(Number(disciplinaId), { nome })
+      setDisciplinas(disciplinas.map((d) =>
+        d.id === Number(disciplinaId) ? { ...d, assuntos: [...d.assuntos, novoAssunto] } : d
+      ))
+      setAssuntoId(String(novoAssunto.id))
+      setModalAssunto(false)
+    } catch (err) {
+      window.alert(err.message || "Não foi possível criar o assunto.")
+    }
   }
 
   const valido =
     disciplinaId && assuntoId && dificuldade && enunciado.trim() &&
     alternativas.every((a) => a.trim())
 
-  function salvar() {
-    if (!valido) return
-    const assunto = assuntosDisponiveis.find((a) => a.id === Number(assuntoId))
-    onSalvar({
-      id: questaoInicial?.id || Date.now(),
+  async function salvar() {
+    if (!valido || enviando) return
+    setErro("")
+    setEnviando(true)
+
+    const payload = {
+      assuntoId: Number(assuntoId),
       enunciado: enunciado.trim(),
-      disciplinaId: disciplinaSelecionada.id,
-      disciplina: disciplinaSelecionada.nome,
-      assuntoId: assunto.id,
-      assunto: assunto.nome,
       dificuldade,
-      dataPublicacao: questaoInicial?.dataPublicacao || new Date().toLocaleDateString("pt-BR"),
-      alternativas: alternativas.map((texto, i) => ({ id: i + 1, texto: texto.trim(), correta: i === corretaIdx })),
-      totalRespondentes: questaoInicial?.totalRespondentes || 0,
-      percentualAcerto: questaoInicial?.percentualAcerto || 0,
-    })
+      alternativas: alternativas.map((texto, i) => ({ texto: texto.trim(), correta: i === corretaIdx })),
+    }
+
+    try {
+      const questaoSalva = questaoInicial
+        ? await questaoService.atualizar(questaoInicial.id, payload)
+        : await questaoService.criar(payload)
+      onSalvar(questaoSalva)
+    } catch (err) {
+      setErro(err.message || "Não foi possível salvar a questão.")
+      setEnviando(false)
+    }
   }
 
   return (
@@ -192,16 +217,22 @@ function NovaQuestao({ disciplinas, setDisciplinas, questaoInicial, onSalvar, on
         </div>
       </div>
 
+      {erro && <p style={s.erro}>{erro}</p>}
+
       <div style={s.formBotoes}>
         <button style={s.btnCancelar} className="nexos-btn" onClick={onCancelar}>
           <X size={15} /> Cancelar
         </button>
         <button
-          style={{ ...s.btnSalvar, opacity: valido ? 1 : 0.5, cursor: valido ? "pointer" : "not-allowed" }}
+          style={{
+            ...s.btnSalvar,
+            opacity: valido && !enviando ? 1 : 0.5,
+            cursor: valido && !enviando ? "pointer" : "not-allowed",
+          }}
           className="nexos-btn"
           onClick={salvar}
         >
-          <Check size={15} /> {editando ? "Salvar alterações" : "Salvar questão"}
+          <Check size={15} /> {enviando ? "Salvando..." : editando ? "Salvar alterações" : "Salvar questão"}
         </button>
       </div>
 
@@ -277,6 +308,7 @@ const s = {
   radioAtivo: { background: "#1a9c5c", borderColor: "#1a9c5c" },
 
   formBotoes: { display: "flex", justifyContent: "space-between", marginTop: "24px" },
+  erro: { fontSize: "13px", color: "#d33", margin: "-8px 0 0" },
   btnCancelar: {
     display: "flex", alignItems: "center", gap: "8px", background: "#fff", color: "var(--nexos-navy)",
     border: "1.5px solid var(--nexos-border)", borderRadius: "10px", padding: "10px 18px",

@@ -5,12 +5,16 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080"
  * Lança um Error com a mensagem vinda do backend quando a resposta não é ok.
  */
 async function request(path, options = {}) {
+  const { semAuth, ...fetchOptions } = options
+  const token = !semAuth && localStorage.getItem("token")
+
   const response = await fetch(`${API_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
-      ...options.headers,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...fetchOptions.headers,
     },
-    ...options,
+    ...fetchOptions,
   })
 
   const data = await response.json().catch(() => null)
@@ -34,6 +38,7 @@ export const authService = {
     return request("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, senha }),
+      semAuth: true,
     })
   },
 
@@ -44,6 +49,169 @@ export const authService = {
     return request("/auth/register", {
       method: "POST",
       body: JSON.stringify(dados),
+      semAuth: true,
+    })
+  },
+}
+
+export const turmaService = {
+  /**
+   * @returns {Promise<Array<{ id, nome, disciplina, turno, nivel, codigo, professorNome, totalAlunos }>>}
+   */
+  listarMinhas() {
+    return request("/turmas/minhas")
+  },
+
+  /**
+   * @param {{ nome: string, disciplina: string, turno: string, nivel: string }} dados
+   */
+  criar(dados) {
+    return request("/turmas", {
+      method: "POST",
+      body: JSON.stringify(dados),
+    })
+  },
+
+  buscarPorId(id) {
+    return request(`/turmas/${id}`)
+  },
+
+  atualizar(id, dados) {
+    return request(`/turmas/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(dados),
+    })
+  },
+
+  deletar(id) {
+    return request(`/turmas/${id}`, {
+      method: "DELETE",
+    })
+  },
+
+  /**
+   * @param {string} codigo
+   */
+  entrar(codigo) {
+    return request("/turmas/entrar", {
+      method: "POST",
+      body: JSON.stringify({ codigo }),
+    })
+  },
+}
+
+export const disciplinaService = {
+  /**
+   * @returns {Promise<Array<{ id, nome, assuntos: Array<{id, nome, disciplinaId, totalQuestoes}>, totalQuestoes }>>}
+   */
+  listarMinhas() {
+    return request("/disciplinas/minhas")
+  },
+
+  /**
+   * @param {{ nome: string }} dados
+   */
+  criar(dados) {
+    return request("/disciplinas", {
+      method: "POST",
+      body: JSON.stringify(dados),
+    })
+  },
+
+  atualizar(id, dados) {
+    return request(`/disciplinas/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(dados),
+    })
+  },
+
+  deletar(id) {
+    return request(`/disciplinas/${id}`, {
+      method: "DELETE",
+    })
+  },
+}
+
+export const assuntoService = {
+  /**
+   * @param {{ nome: string }} dados
+   */
+  criar(disciplinaId, dados) {
+    return request(`/disciplinas/${disciplinaId}/assuntos`, {
+      method: "POST",
+      body: JSON.stringify(dados),
+    })
+  },
+
+  listarPorDisciplina(disciplinaId) {
+    return request(`/disciplinas/${disciplinaId}/assuntos`)
+  },
+
+  atualizar(id, dados) {
+    return request(`/assuntos/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(dados),
+    })
+  },
+
+  deletar(id) {
+    return request(`/assuntos/${id}`, {
+      method: "DELETE",
+    })
+  },
+}
+
+// O backend guarda dificuldade em maiúsculo (FACIL/MEDIA/DIFICIL); as telas
+// do banco de questões usam os ids minúsculos definidos em data/disciplinasSimuladas.js.
+// Essas duas tabelas fazem a conversão nos dois sentidos, isolando o resto do
+// app dessa diferença.
+const DIFICULDADE_PARA_BACKEND = { facil: "FACIL", media: "MEDIA", dificil: "DIFICIL" }
+const DIFICULDADE_PARA_FRONTEND = { FACIL: "facil", MEDIA: "media", DIFICIL: "dificil" }
+
+function questaoParaFrontend(questao) {
+  return {
+    ...questao,
+    dificuldade: DIFICULDADE_PARA_FRONTEND[questao.dificuldade] || questao.dificuldade,
+  }
+}
+
+export const questaoService = {
+  /**
+   * Todas as questões do professor autenticado, em qualquer disciplina/assunto.
+   */
+  listarMinhas() {
+    return request("/questoes/minhas").then((lista) => lista.map(questaoParaFrontend))
+  },
+
+  /**
+   * @param {{ assuntoId: number, enunciado: string, dificuldade: "facil"|"media"|"dificil",
+   *           alternativas: Array<{texto: string, correta: boolean}> }} dados
+   */
+  criar(dados) {
+    return request("/questoes", {
+      method: "POST",
+      body: JSON.stringify({
+        ...dados,
+        tipo: "MULTIPLA_ESCOLHA",
+        dificuldade: DIFICULDADE_PARA_BACKEND[dados.dificuldade] || dados.dificuldade,
+      }),
+    }).then(questaoParaFrontend)
+  },
+
+  atualizar(id, dados) {
+    return request(`/questoes/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        ...dados,
+        tipo: "MULTIPLA_ESCOLHA",
+        dificuldade: DIFICULDADE_PARA_BACKEND[dados.dificuldade] || dados.dificuldade,
+      }),
+    }).then(questaoParaFrontend)
+  },
+
+  deletar(id) {
+    return request(`/questoes/${id}`, {
+      method: "DELETE",
     })
   },
 }
