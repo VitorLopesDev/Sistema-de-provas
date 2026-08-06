@@ -1,0 +1,12 @@
+package com.sistemadeprovas.dto;
+
+public record TurmaResponse(
+        Long id,
+        String nome,
+        String disciplina,
+        String turno,
+        String nivel,
+        String codigo,
+        String professorNome,
+        int totalAlunos
+) {}

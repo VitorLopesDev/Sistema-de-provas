@@ -26,6 +26,15 @@ public class Turma {
     @Column(nullable = false)
     private String nome; // ex: "P5 — Ciência da Computação"
 
+    @Column(nullable = false)
+    private String disciplina; // ex: "Banco de Dados I"
+
+    @Column(nullable = false)
+    private String turno; // "Matutino" | "Vespertino" | "Noturno"
+
+    @Column(nullable = false)
+    private String nivel; // "Fundamental" | "Médio" | "Graduação" | "Pós-graduação"
+
     // Código que o aluno usa para se matricular na turma (ex: "BD1-2026-P5")
     @Column(nullable = false, unique = true)
     private String codigo;

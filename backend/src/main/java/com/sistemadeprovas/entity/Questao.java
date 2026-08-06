@@ -11,14 +11,20 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+// Questão vive no banco reutilizável do professor, vinculada a um assunto
+// dentro de uma disciplina. Não pertence a nenhuma prova específica — o
+// vínculo entre questão e prova (com peso e ordem próprios daquele uso)
+// é feito pela entidade ProvaQuestao.
 @Entity
 @Table(name = "questoes")
 @Getter
@@ -31,8 +37,8 @@ public class Questao {
     private Long id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "prova_id", nullable = false)
-    private Prova prova;
+    @JoinColumn(name = "assunto_id", nullable = false)
+    private Assunto assunto;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String enunciado;
@@ -41,15 +47,19 @@ public class Questao {
     @Column(nullable = false)
     private TipoQuestao tipo;
 
-    // Peso da questão na nota final da prova
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Double pontuacao;
+    private Dificuldade dificuldade;
 
-    // Posição da questão dentro da prova (1, 2, 3...)
-    @Column(nullable = false)
-    private Integer ordem;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime dataCriacao;
 
     // Só é preenchida quando tipo = MULTIPLA_ESCOLHA
     @OneToMany(mappedBy = "questao", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Alternativa> alternativas = new ArrayList<>();
+
+    @PrePersist
+    protected void aoCriar() {
+        dataCriacao = LocalDateTime.now();
+    }
 }
