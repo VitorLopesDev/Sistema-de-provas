@@ -8,8 +8,7 @@ import Turmas from "./Turmas"
 import MinhasDisciplinas from "./MinhasDisciplinas"
 import BancoDeQuestoes from "./BancoDeQuestoes"
 import PerfilProfessor from "./PerfilProfessor"
-
-
+import CriarProva from "./CriarProva"
 
 // ── Tela: Lista de provas ──────────────────────────────────────────────────
 function ListaProvas({ provas: PROVAS_SIMULADAS, onVerDetalhe, onCriar }) {
@@ -236,6 +235,8 @@ function PainelProfessor({ usuario, onSair, onAtualizarUsuario }) {
   const [turmasIniciarCriando, setTurmasIniciarCriando] = useState(false)
   const [disciplinasIniciarCriando, setDisciplinasIniciarCriando] = useState(false)
   const [questoesIniciarCriando, setQuestoesIniciarCriando] = useState(false)
+  const [criandoProva, setCriandoProva] = useState(false)
+  const [turmaPreSelecionada, setTurmaPreSelecionada] = useState(null)
 
   const marginLeft = sidebarAberto ? "220px" : "64px"
 
@@ -256,14 +257,28 @@ function PainelProfessor({ usuario, onSair, onAtualizarUsuario }) {
     setProvaDetalhe((atual) => (atual && atual.id === id ? { ...atual, liberada: !atual.liberada } : atual))
   }
 
-  function tentarCriarProva() {
-    if (disciplinas.length === 0) {
-      window.alert("Você ainda não tem nenhuma disciplina cadastrada. Cadastre uma disciplina antes de criar uma prova.")
-      navegar("disciplinas", { criar: true })
-      return
-    }
-    window.alert("A criação de provas a partir daqui ainda está em construção — por enquanto, crie uma prova pela tela de uma turma.")
+  function tentarCriarProva(turmaId = null) {
+  if (disciplinas.length === 0) {
+    window.alert("Você ainda não tem nenhuma disciplina cadastrada. Cadastre uma disciplina antes de criar uma prova.")
+    navegar("disciplinas", { criar: true })
+    return
   }
+  if (turmas.length === 0) {
+    window.alert("Você ainda não tem nenhuma turma cadastrada. Cadastre uma turma antes de criar uma prova.")
+    navegar("turmas", { criar: true })
+    return
+  }
+  setTurmaPreSelecionada(turmaId)
+  setPaginaAtiva("provas")
+  setProvaDetalhe(null)
+  setCriandoProva(true)
+}
+
+function salvarNovaProva(novaProva) {
+  setProvas([novaProva, ...provas])
+  setCriandoProva(false)
+  setTurmaPreSelecionada(null)
+}
 
   function renderConteudo() {
     if (paginaAtiva === "home") {
@@ -296,6 +311,19 @@ function PainelProfessor({ usuario, onSair, onAtualizarUsuario }) {
       )
     }
     if (paginaAtiva === "provas") {
+      if (criandoProva) {
+        return (
+          <CriarProva
+              turmas={turmas}
+              questoes={questoes}
+              disciplinas={disciplinas}
+              turmaPreSelecionadaId={turmaPreSelecionada}
+              onSalvar={salvarNovaProva}
+              onCancelar={() => { setCriandoProva(false); setTurmaPreSelecionada(null) }}
+          />
+        )
+      }
+
       if (provaDetalhe) {
         return (
           <DetalheProva
@@ -315,8 +343,10 @@ function PainelProfessor({ usuario, onSair, onAtualizarUsuario }) {
           setTurmas={setTurmas}
           carregando={turmasCarregando}
           erro={turmasErro}
+          disciplinas={disciplinas}
+          provas={provas}
           iniciarCriando={turmasIniciarCriando}
-          onProvaSelecionada={() => (disciplinas.length === 0 ? tentarCriarProva() : navegar("provas"))}
+          onProvaSelecionada={(turmaId) => tentarCriarProva(turmaId)}
         />
       )
     }

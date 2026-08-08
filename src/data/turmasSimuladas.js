@@ -1,6 +1,7 @@
 export const TURMAS_SIMULADAS = [
   {
     id: 1,
+    disciplinaId: 1,
     disciplina: "Linguagem de Programação II",
     nome: "Ciência da Computação 2026.1",
     turno: "Noturno",
@@ -9,6 +10,7 @@ export const TURMAS_SIMULADAS = [
   },
   {
     id: 2,
+    disciplinaId: 2,
     disciplina: "Banco de Dados I",
     nome: "Ciência da Computação 2026.1",
     turno: "Noturno",
@@ -17,6 +19,7 @@ export const TURMAS_SIMULADAS = [
   },
   {
     id: 3,
+    disciplinaId: 3,
     disciplina: "Estrutura de Dados",
     nome: "Ciência da Computação 2026.1",
     turno: "Matutino",

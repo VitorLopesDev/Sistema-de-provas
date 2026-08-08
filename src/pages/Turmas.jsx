@@ -47,15 +47,15 @@ function ListaTurmas({ turmas, carregando, erro, onVerDetalhe, onCriar }) {
 }
 
 // ── Tela: Criar turma ──────────────────────────────────────────────────────
-function CriarTurma({ onCancelar, onCriar }) {
+function CriarTurma({ disciplinas, onCancelar, onCriar }) {
   const [nomeTurma, setNomeTurma] = useState("")
-  const [disciplina, setDisciplina] = useState("")
+  const [disciplinaId, setDisciplinaId] = useState("")
   const [turno, setTurno] = useState("")
   const [nivel, setNivel] = useState("")
   const [enviando, setEnviando] = useState(false)
   const [erro, setErro] = useState("")
 
-  const valido = nomeTurma.trim() && disciplina.trim() && turno && nivel
+  const valido = nomeTurma.trim() && disciplinaId && turno && nivel
 
   async function handleCriar() {
     if (!valido || enviando) return
@@ -107,13 +107,24 @@ function CriarTurma({ onCancelar, onCriar }) {
         </div>
 
         <div style={s.formRow}>
-          <Campo label="Nome da disciplina" obrigatorio>
-            <input
-              style={s.input}
-              placeholder="Ex: Linguagem de Programação II"
-              value={disciplina}
-              onChange={(e) => setDisciplina(e.target.value)}
-            />
+          <Campo label="Disciplina" obrigatorio>
+            {disciplinas.length === 0 ? (
+              <p style={{ fontSize: "12.5px", color: "var(--nexos-gray)", margin: 0 }}>
+                Nenhuma disciplina cadastrada ainda.
+              </p>
+            ) : (
+              <div style={{ position: "relative", width: "100%" }}>
+                <select
+                  style={s.select}
+                  value={disciplinaId}
+                  onChange={(e) => setDisciplinaId(e.target.value)}
+                >
+                  <option value="" disabled>Selecione</option>
+                  {disciplinas.map((d) => <option key={d.id} value={d.id}>{d.nome}</option>)}
+                </select>
+                <ChevronDown size={14} color="var(--nexos-gray)" style={s.selectIcone} />
+              </div>
+            )}
           </Campo>
           <Campo label="Nível" obrigatorio>
             <Select value={nivel} onChange={setNivel} opcoes={NIVEIS} placeholder="Selecione" />
@@ -169,11 +180,11 @@ function Select({ value, onChange, opcoes, placeholder }) {
 }
 
 // ── Tela: Detalhe da turma ─────────────────────────────────────────────────
-function DetalheTurma({ turma, onNovaProva }) {
+function DetalheTurma({ turma, provas, onNovaProva }) {
   const [aba, setAba] = useState("provas")
   const [filtro, setFiltro] = useState("todas")
 
-  const provasDaTurma = PROVAS_SIMULADAS
+  const provasDaTurma = provas.filter((p) => p.turmaId === turma.id)
 
   return (
     <div style={s.pagina}>
@@ -220,7 +231,7 @@ function DetalheTurma({ turma, onNovaProva }) {
         <>
           <div style={s.provasHeader}>
             <h2 style={s.subtituloSecao}>Provas</h2>
-            <button style={s.btnCriar} className="nexos-btn" onClick={onNovaProva}>
+            <button style={s.btnCriar} className="nexos-btn" onClick={() => onNovaProva(turma.id)}>
               <Plus size={15} /> Nova prova
             </button>
           </div>
@@ -264,13 +275,14 @@ function DetalheTurma({ turma, onNovaProva }) {
 }
 
 // ── Componente principal ───────────────────────────────────────────────────
-function Turmas({ turmas, setTurmas, carregando, erro, iniciarCriando, onProvaSelecionada }) {
+function Turmas({ turmas, setTurmas, disciplinas, provas, carregando, erro, iniciarCriando, onProvaSelecionada }) {
   const [modo, setModo] = useState(iniciarCriando ? "criar" : "lista")
   const [turmaAtiva, setTurmaAtiva] = useState(null)
 
   if (modo === "criar") {
     return (
       <CriarTurma
+        disciplinas={disciplinas}
         onCancelar={() => setModo("lista")}
         onCriar={(novaTurma) => {
           setTurmas([novaTurma, ...turmas])
@@ -282,7 +294,7 @@ function Turmas({ turmas, setTurmas, carregando, erro, iniciarCriando, onProvaSe
   }
 
   if (modo === "detalhe" && turmaAtiva) {
-    return <DetalheTurma turma={turmaAtiva} onNovaProva={onProvaSelecionada} />
+    return <DetalheTurma turma={turmaAtiva} provas={provas} onNovaProva={onProvaSelecionada} />
   }
 
   return (

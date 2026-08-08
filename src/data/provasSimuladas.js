@@ -2,7 +2,8 @@ export const PROVAS_SIMULADAS = [
   {
     id: 1,
     titulo: "Banco de Dados I — Prova 2",
-    turma: "P5 — Ciência da Computação",
+    turmaId: 2,
+    turma: "Ciência da Computação 2026.1",
     dataInicio: "07/07/2025 08:00",
     dataFim: "07/07/2025 09:30",
     tempoLimite: 90,
@@ -18,7 +19,8 @@ export const PROVAS_SIMULADAS = [
   {
     id: 2,
     titulo: "Linguagem de Programação II — Prova 2",
-    turma: "P3 — Ciência da Computação",
+    turmaId: 1,
+    turma: "Ciência da Computação 2026.1",
     dataInicio: "06/07/2025 10:00",
     dataFim: "06/07/2025 11:00",
     tempoLimite: 60,
@@ -33,7 +35,8 @@ export const PROVAS_SIMULADAS = [
   {
     id: 3,
     titulo: "Estrutura de Dados — Prova 1",
-    turma: "P4 — Ciência da Computação",
+    turmaId: 3,
+    turma: "Ciência da Computação 2026.1",
     dataInicio: "10/07/2025 14:00",
     dataFim: "10/07/2025 15:30",
     tempoLimite: 90,
