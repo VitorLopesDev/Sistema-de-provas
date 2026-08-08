@@ -62,10 +62,12 @@ function CriarTurma({ disciplinas, onCancelar, onCriar }) {
     setErro("")
     setEnviando(true)
 
+    const disciplina = disciplinas.find((d) => d.id === Number(disciplinaId))
+
     try {
       const turmaCriada = await turmaService.criar({
         nome: nomeTurma,
-        disciplina,
+        disciplina: disciplina.nome,
         turno,
         nivel,
       })
