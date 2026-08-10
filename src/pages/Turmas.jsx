@@ -1,7 +1,7 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Plus, X, Check, ChevronDown, ChevronRight, GraduationCap, Clock,
-  FileText, Users, Settings, Calendar,
+  FileText, Users, Settings, Calendar, Pencil, Archive, Copy, AlertTriangle, ArrowLeft,
 } from "lucide-react"
 import { TURNOS, NIVEIS } from "../data/turmasSimuladas"
 import { PROVAS_SIMULADAS } from "../data/provasSimuladas"
@@ -181,8 +181,266 @@ function Select({ value, onChange, opcoes, placeholder }) {
   )
 }
 
+// ── Aba: Pessoas da turma ──────────────────────────────────────────────────
+function AbaPessoas({ turmaId }) {
+  const [dados, setDados] = useState(null)
+  const [carregando, setCarregando] = useState(true)
+  const [erro, setErro] = useState("")
+
+  useEffect(() => {
+    setCarregando(true)
+    setErro("")
+    turmaService
+      .listarPessoas(turmaId)
+      .then(setDados)
+      .catch((err) => setErro(err.message || "Não foi possível carregar as pessoas da turma."))
+      .finally(() => setCarregando(false))
+  }, [turmaId])
+
+  if (carregando) {
+    return <div style={s.vazio}>Carregando pessoas...</div>
+  }
+
+  if (erro) {
+    return <div style={s.vazio}>{erro}</div>
+  }
+
+  const professor = dados?.professor
+  const alunos = dados?.alunos || []
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "28px" }}>
+      <div>
+        <div style={s.pessoasCabecalho}>
+          <span>Professores</span>
+          <span style={s.contadorPessoas}>{professor ? 1 : 0}</span>
+        </div>
+        {professor ? (
+          <div style={s.pessoaLinha}>
+            <div style={s.pessoaAvatar}>{professor.nome.charAt(0).toUpperCase()}</div>
+            <span style={s.pessoaNome}>{professor.nome}</span>
+          </div>
+        ) : (
+          <div style={s.vazio}>Nenhum professor associado.</div>
+        )}
+      </div>
+
+      <div>
+        <div style={s.pessoasCabecalho}>
+          <span>Alunos</span>
+          <span style={s.contadorPessoas}>{alunos.length}</span>
+        </div>
+        {alunos.length === 0 ? (
+          <div style={s.vazio}>Nenhum aluno matriculado nessa turma ainda.</div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {alunos.map((aluno) => (
+              <div key={aluno.id} style={s.pessoaLinha}>
+                <div style={s.pessoaAvatar}>{aluno.nome.charAt(0).toUpperCase()}</div>
+                <span style={s.pessoaNome}>{aluno.nome}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Campo editável individual (nome/turno/nível/disciplina) ────────────────
+function CampoEditavel({ label, valor, tipo = "texto", opcoes, onSalvar }) {
+  const [editando, setEditando] = useState(false)
+  const [valorEditado, setValorEditado] = useState(valor)
+  const [salvando, setSalvando] = useState(false)
+
+  async function salvar() {
+    if (!valorEditado.trim() || salvando) return
+    setSalvando(true)
+    try {
+      await onSalvar(valorEditado)
+      setEditando(false)
+    } catch (err) {
+      window.alert(err.message || "Não foi possível salvar a alteração.")
+    } finally {
+      setSalvando(false)
+    }
+  }
+
+  if (editando) {
+    return (
+      <div style={s.configCampo}>
+        <span style={s.configLabel}>{label}:</span>
+        <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+          {tipo === "select" ? (
+            <div style={{ position: "relative" }}>
+              <select
+                style={s.configSelect}
+                value={valorEditado}
+                onChange={(e) => setValorEditado(e.target.value)}
+                autoFocus
+              >
+                {opcoes.map((op) => <option key={op} value={op}>{op}</option>)}
+              </select>
+              <ChevronDown size={13} color="var(--nexos-gray)" style={s.configSelectIcone} />
+            </div>
+          ) : (
+            <input
+              style={s.configInput}
+              value={valorEditado}
+              onChange={(e) => setValorEditado(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && salvar()}
+              autoFocus
+            />
+          )}
+          <button style={s.configBtnIcone} onClick={salvar} title="Salvar" disabled={salvando}>
+            <Check size={13} color="#1a9c5c" />
+          </button>
+          <button style={s.configBtnIcone} onClick={() => { setValorEditado(valor); setEditando(false) }} title="Cancelar">
+            <X size={13} color="var(--nexos-gray)" />
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={s.configCampo}>
+      <span style={s.configLabel}>{label}:</span>
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        <span style={s.configValor}>{valor}</span>
+        <button style={s.configBtnIcone} onClick={() => setEditando(true)} title={`Editar ${label.toLowerCase()}`}>
+          <Pencil size={12} color="var(--nexos-gray)" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ModalConfirmarArquivar({ nomeTurma, onCancelar, onConfirmar, arquivando }) {
+  return (
+    <div style={s.overlay} onClick={onCancelar}>
+      <div style={s.modalConfirmar} className="nexos-card" onClick={(e) => e.stopPropagation()}>
+        <div style={s.modalIcone}>
+          <AlertTriangle size={22} color="#b8860b" />
+        </div>
+        <h3 style={s.modalTitulo}>Arquivar turma?</h3>
+        <p style={s.modalTexto}>
+          A turma <strong>{nomeTurma}</strong> deixará de aparecer como ativa, mas o histórico de provas e alunos será preservado.
+        </p>
+        <div style={s.modalBotoes}>
+          <button style={s.btnCancelarModal} className="nexos-btn" onClick={onCancelar} disabled={arquivando}>
+            Cancelar
+          </button>
+          <button style={s.btnConfirmarArquivar} className="nexos-btn" onClick={onConfirmar} disabled={arquivando}>
+            <Archive size={14} /> {arquivando ? "Arquivando..." : "Arquivar turma"}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Aba: Configurações da turma ────────────────────────────────────────────
+function AbaConfiguracoes({ turma, disciplinas, onAtualizarTurma, onArquivada }) {
+  const [copiado, setCopiado] = useState(false)
+  const [arquivando, setArquivando] = useState(false)
+  const [modalArquivarAberto, setModalArquivarAberto] = useState(false)
+
+  async function salvarCampo(campo, valor) {
+    const dados = {
+      nome: turma.nome,
+      disciplina: turma.disciplina,
+      turno: turma.turno,
+      nivel: turma.nivel,
+      [campo]: valor,
+    }
+    const turmaAtualizada = await turmaService.atualizar(turma.id, dados)
+    onAtualizarTurma(turmaAtualizada)
+  }
+
+  function copiarCodigo() {
+    if (!turma.codigo) return
+    navigator.clipboard.writeText(turma.codigo)
+    setCopiado(true)
+    setTimeout(() => setCopiado(false), 2000)
+  }
+
+  async function confirmarArquivar() {
+    setArquivando(true)
+    try {
+      await turmaService.arquivar(turma.id)
+      onArquivada(turma.id)
+    } catch (err) {
+      window.alert(err.message || "Não foi possível arquivar a turma.")
+      setArquivando(false)
+      setModalArquivarAberto(false)
+    }
+  }
+
+  return (
+    <div>
+      <div style={s.configCabecalho}>
+        <h2 style={s.subtituloSecao}>Configurações</h2>
+        <button style={s.btnArquivar} className="nexos-btn" onClick={() => setModalArquivarAberto(true)}>
+          <Archive size={14} /> Arquivar turma
+        </button>
+      </div>
+
+      <div style={s.configGrid}>
+        <CampoEditavel
+          label="Nome da turma"
+          valor={turma.nome}
+          onSalvar={(v) => salvarCampo("nome", v)}
+        />
+        <CampoEditavel
+          label="Turno"
+          valor={turma.turno}
+          tipo="select"
+          opcoes={TURNOS}
+          onSalvar={(v) => salvarCampo("turno", v)}
+        />
+        <CampoEditavel
+          label="Disciplina"
+          valor={turma.disciplina}
+          tipo="select"
+          opcoes={disciplinas.map((d) => d.nome)}
+          onSalvar={(v) => salvarCampo("disciplina", v)}
+        />
+        <CampoEditavel
+          label="Nível"
+          valor={turma.nivel}
+          tipo="select"
+          opcoes={NIVEIS}
+          onSalvar={(v) => salvarCampo("nivel", v)}
+        />
+      </div>
+
+      <div style={{ marginTop: "20px" }}>
+        <span style={s.configLabel}>Código da turma:</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "6px" }}>
+          <span style={s.codigoBox}>{turma.codigo || "—"}</span>
+          {turma.codigo && (
+            <button style={s.configBtnIcone} onClick={copiarCodigo} title="Copiar código">
+              {copiado ? <Check size={14} color="#1a9c5c" /> : <Copy size={14} color="var(--nexos-gray)" />}
+            </button>
+          )}
+        </div>
+      </div>
+      
+      {modalArquivarAberto && (
+        <ModalConfirmarArquivar
+          nomeTurma={turma.nome}
+          arquivando={arquivando}
+          onCancelar={() => setModalArquivarAberto(false)}
+          onConfirmar={confirmarArquivar}
+        />
+      )}
+    </div>
+  )
+}
+
 // ── Tela: Detalhe da turma ─────────────────────────────────────────────────
-function DetalheTurma({ turma, provas, onNovaProva }) {
+function DetalheTurma({ turma, provas, disciplinas, onNovaProva, onAtualizarTurma, onArquivada, onVoltar }) {
   const [aba, setAba] = useState("provas")
   const [filtro, setFiltro] = useState("todas")
 
@@ -190,6 +448,9 @@ function DetalheTurma({ turma, provas, onNovaProva }) {
 
   return (
     <div style={s.pagina}>
+      <button style={s.btnVoltar} className="nexos-link" onClick={onVoltar}>
+        <ArrowLeft size={14} /> Voltar
+      </button>
       <div>
         <h1 style={s.tituloGrande}>{turma.nome}</h1>
         <div style={s.metaRow}>
@@ -270,8 +531,8 @@ function DetalheTurma({ turma, provas, onNovaProva }) {
         </>
       )}
 
-      {aba === "pessoas" && <div style={s.vazio}>Gestão de alunos em construção.</div>}
-      {aba === "config" && <div style={s.vazio}>Configurações da turma em construção.</div>}
+      {aba === "pessoas" && <AbaPessoas turmaId={turma.id} />}
+      {aba === "config" && (<AbaConfiguracoes turma={turma} disciplinas={disciplinas} onAtualizarTurma={onAtualizarTurma} onArquivada={onArquivada}/>)}
     </div>
   )
 }
@@ -296,7 +557,24 @@ function Turmas({ turmas, setTurmas, disciplinas, provas, carregando, erro, inic
   }
 
   if (modo === "detalhe" && turmaAtiva) {
-    return <DetalheTurma turma={turmaAtiva} provas={provas} onNovaProva={onProvaSelecionada} />
+    return (
+      <DetalheTurma
+        turma={turmaAtiva}
+        provas={provas}
+        disciplinas={disciplinas}
+        onNovaProva={onProvaSelecionada}
+        onAtualizarTurma={(turmaAtualizada) => {
+          setTurmas(turmas.map((t) => (t.id === turmaAtualizada.id ? turmaAtualizada : t)))
+          setTurmaAtiva(turmaAtualizada)
+        }}
+        onArquivada={(turmaId) => {
+          setTurmas(turmas.filter((t) => t.id !== turmaId))
+          setModo("lista")
+          setTurmaAtiva(null)
+        }}
+        onVoltar={() => { setModo("lista"); setTurmaAtiva(null) }}
+      />
+    )
   }
 
   return (
@@ -316,9 +594,11 @@ const s = {
     flexDirection: "column",
     gap: "24px",
     maxWidth: "1000px",
+    margin: "0 auto",
   },
   paginaEstreita: {
     maxWidth: "760px",
+    margin: "0 auto",
   },
   breadcrumb: {
     display: "flex",
@@ -382,18 +662,39 @@ const s = {
     boxShadow: "0 6px 16px rgba(16, 94, 220, 0.22)",
   },
   btnCancelar: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    background: "#fff",
-    color: "var(--nexos-navy)",
-    border: "1.5px solid var(--nexos-border)",
-    borderRadius: "10px",
-    padding: "10px 18px",
-    fontSize: "13.5px",
-    fontWeight: "600",
-    cursor: "pointer",
-    fontFamily: "inherit",
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  background: "#fff",
+  color: "var(--nexos-navy)",
+  border: "1.5px solid var(--nexos-border)",
+  borderRadius: "10px",
+  padding: "10px 18px",
+  fontSize: "13.5px",
+  fontWeight: "600",
+  cursor: "pointer",
+  fontFamily: "inherit",
+  },
+  btnCancelarModal: {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "8px",
+  background: "#fff",
+  color: "var(--nexos-navy)",
+  border: "1.5px solid var(--nexos-border)",
+  borderRadius: "10px",
+  padding: "10px 18px",
+  fontSize: "13.5px",
+  fontWeight: "600",
+  cursor: "pointer",
+  fontFamily: "inherit",
+  flex: 1,
+  },
+  btnVoltar: {
+  display: "flex", alignItems: "center", gap: "6px",
+  background: "none", border: "none", color: "var(--nexos-gray)",
+  fontSize: "13px", cursor: "pointer", fontFamily: "inherit", padding: 0,
   },
   grid: {
     display: "grid",
@@ -571,6 +872,83 @@ const s = {
     background: "linear-gradient(120deg, var(--nexos-blue), var(--nexos-purple))",
     color: "#fff",
     border: "1px solid transparent",
+  },
+  pessoasCabecalho: {
+    display: "flex", alignItems: "center", gap: "8px",
+    fontSize: "14px", fontWeight: "700", color: "var(--nexos-navy)", marginBottom: "10px",
+  },
+  contadorPessoas: {
+    fontSize: "12px", fontWeight: "600", color: "var(--nexos-blue)",
+    background: "var(--nexos-icon-bg)", borderRadius: "999px", padding: "1px 9px",
+  },
+  pessoaLinha: {
+    display: "flex", alignItems: "center", gap: "12px",
+    padding: "12px 4px", borderBottom: "1px solid var(--nexos-border)",
+  },
+  pessoaAvatar: {
+    width: "32px", height: "32px", minWidth: "32px", borderRadius: "50%",
+    background: "linear-gradient(135deg, var(--nexos-blue), var(--nexos-purple))",
+    color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+    fontSize: "13px", fontWeight: "600",
+  },
+  pessoaNome: { fontSize: "13.5px", color: "var(--nexos-navy)" },
+  configCabecalho: {
+    display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px",
+  },
+  btnArquivar: {
+    display: "flex", alignItems: "center", gap: "8px",
+    background: "#fff", color: "var(--nexos-navy)", border: "1.5px solid var(--nexos-border)",
+    borderRadius: "10px", padding: "9px 16px", fontSize: "13px", fontWeight: "600",
+    cursor: "pointer", fontFamily: "inherit",
+  },
+  configGrid: {
+    display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px",
+  },
+  configCampo: { display: "flex", flexDirection: "column", gap: "4px" },
+  configLabel: { fontSize: "12px", fontWeight: "600", color: "var(--nexos-gray)" },
+  configValor: { fontSize: "14px", color: "var(--nexos-navy)" },
+  configBtnIcone: {
+    background: "none", border: "none", cursor: "pointer", padding: "3px",
+    display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "6px",
+  },
+  configInput: {
+    background: "var(--nexos-bg)", border: "1.5px solid var(--nexos-blue)", borderRadius: "6px",
+    padding: "6px 10px", fontSize: "13.5px", color: "var(--nexos-navy)", fontFamily: "inherit",
+    outline: "none",
+  },
+  configSelect: {
+    background: "var(--nexos-bg)", border: "1.5px solid var(--nexos-blue)", borderRadius: "6px",
+    padding: "6px 28px 6px 10px", fontSize: "13.5px", color: "var(--nexos-navy)", fontFamily: "inherit",
+    outline: "none", appearance: "none", cursor: "pointer",
+  },
+  configSelectIcone: { position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" },
+  codigoBox: {
+    background: "var(--nexos-bg)", border: "1px solid var(--nexos-border)", borderRadius: "8px",
+    padding: "8px 14px", fontSize: "13.5px", fontWeight: "600", color: "var(--nexos-navy)",
+    fontFamily: "monospace", letterSpacing: "0.03em",
+  },
+  overlay: {
+    position: "fixed", inset: 0, background: "rgba(5,10,26,0.5)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    zIndex: 200, backdropFilter: "blur(2px)",
+  },
+  modalConfirmar: {
+    background: "#fff", borderRadius: "16px", padding: "28px", width: "380px",
+    display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "8px",
+    boxShadow: "0 24px 60px rgba(5,20,51,0.25)",
+  },
+  modalIcone: {
+    width: "44px", height: "44px", borderRadius: "12px", background: "rgba(184,134,11,0.14)",
+    display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "6px",
+  },
+  modalTitulo: { fontSize: "16px", fontWeight: "700", color: "var(--nexos-navy)", margin: 0 },
+  modalTexto: { fontSize: "13px", color: "var(--nexos-gray)", lineHeight: 1.6, margin: "0 0 12px" },
+  modalBotoes: { display: "flex", gap: "10px", width: "100%" },
+  btnConfirmarArquivar: {
+    display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", flex: 1,
+    background: "var(--nexos-error)", color: "#fff", border: "none",
+    borderRadius: "10px", padding: "10px", fontSize: "13.5px", fontWeight: "600",
+    cursor: "pointer", fontFamily: "inherit",
   },
 }
 

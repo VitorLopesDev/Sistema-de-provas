@@ -257,7 +257,7 @@ function NovaQuestao({ disciplinas, setDisciplinas, disciplinasCarregando, quest
 }
 
 const s = {
-  pagina: { maxWidth: "700px", display: "flex", flexDirection: "column", gap: "4px" },
+  pagina: { maxWidth: "700px", display: "flex", flexDirection: "column", gap: "4px", margin: "0 auto" },
   breadcrumb: { display: "flex", alignItems: "center", gap: "8px", fontSize: "12.5px", color: "var(--nexos-gray)" },
   titulo: { fontSize: "22px", fontWeight: "700", color: "var(--nexos-navy)", margin: "0 0 4px" },
   subtitulo: { fontSize: "13.5px", color: "var(--nexos-gray)", margin: "0 0 24px" },

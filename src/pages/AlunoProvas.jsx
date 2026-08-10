@@ -1,9 +1,9 @@
 import { useState } from "react"
+import { provaService } from "../services/api"
 import {
   FileText, Clock, GraduationCap, CheckCircle2, XCircle, Lock,
   ArrowLeft, Send, X, Award,
 } from "lucide-react"
-import { PROVAS_ALUNO } from "../data/provasAluno"
 
 const STATUS_INFO = {
   pendente: { label: "Disponível", cor: "var(--nexos-blue)", bg: "var(--nexos-icon-bg)" },
@@ -179,17 +179,30 @@ function AguardandoCorrecao({ prova, onVoltar }) {
 }
 
 // ── Componente principal ───────────────────────────────────────────────────
-function AlunoProvas() {
-  const [provas, setProvas] = useState(PROVAS_ALUNO)
-  const [provaAtiva, setProvaAtiva] = useState(null)
+function AlunoProvas({ provas, carregando, erro, setProvas, provaInicial }) {
+  const [provaAtiva, setProvaAtiva] = useState(provaInicial)
+  const [enviando, setEnviando] = useState(false)
 
-  function handleEnviar(id, respostas) {
-    setProvas(provas.map((p) =>
-      p.id === id
-        ? { ...p, status: "enviada", questoes: p.questoes.map((q) => ({ ...q, respostaAluno: respostas[q.id] })) }
-        : p
-    ))
-    setProvaAtiva(null)
+  async function handleEnviar(id, respostas) {
+    if (enviando) return
+    setEnviando(true)
+    try {
+      const provaAtualizada = await provaService.enviarRespostas(id, respostas)
+      setProvas(provas.map((p) => (p.id === id ? provaAtualizada : p)))
+      setProvaAtiva(null)
+    } catch (err) {
+      window.alert(err.message || "Não foi possível enviar suas respostas.")
+    } finally {
+      setEnviando(false)
+    }
+  }
+
+  if (carregando) {
+    return <div style={s.vazio}>Carregando provas...</div>
+  }
+
+  if (erro) {
+    return <div style={s.vazio}>{erro}</div>
   }
 
   if (provaAtiva) {
@@ -207,8 +220,8 @@ function AlunoProvas() {
 }
 
 const s = {
-  pagina: { display: "flex", flexDirection: "column", gap: "24px", maxWidth: "1000px" },
-  paginaEstreita: { maxWidth: "760px" },
+  pagina: { display: "flex", flexDirection: "column", gap: "24px", maxWidth: "1000px", margin: "0 auto" },
+  paginaEstreita: { maxWidth: "760px", margin: "0 auto" },
   titulo: { fontSize: "22px", fontWeight: "700", color: "var(--nexos-navy)", margin: "0 0 4px" },
   subtitulo: { fontSize: "13.5px", color: "var(--nexos-gray)", margin: 0 },
   btnVoltar: { display: "flex", alignItems: "center", gap: "6px", background: "none", border: "none", color: "var(--nexos-gray)", fontSize: "13px", cursor: "pointer", fontFamily: "inherit", padding: 0 },

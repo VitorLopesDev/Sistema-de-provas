@@ -175,7 +175,7 @@ function Campo({ label, children }) {
 }
 
 const s = {
-  pagina: { display: "flex", flexDirection: "column", gap: "36px", maxWidth: "1000px" },
+  pagina: { display: "flex", flexDirection: "column", gap: "36px", maxWidth: "1000px", margin: "0 auto" },
 
   cabecalhoCard: {
     background: "#fff", border: "1px solid var(--nexos-border)", borderRadius: "16px",

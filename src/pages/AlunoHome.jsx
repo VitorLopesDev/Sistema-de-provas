@@ -1,11 +1,18 @@
 import { GraduationCap, Clock, ArrowRight, FileText, Award } from "lucide-react"
-import { PROVAS_ALUNO } from "../data/provasAluno"
 
-function AlunoHome({ usuario, onNavegar }) {
+function AlunoHome({ usuario, provas, carregando, onNavegar }) {
   const primeiroNome = usuario.nome.split(" ")[0]
 
-  const pendentes = PROVAS_ALUNO.filter((p) => p.status === "pendente")
-  const liberadasRecentes = PROVAS_ALUNO.filter((p) => p.status === "liberada").slice(0, 3)
+  if (carregando) {
+    return (
+      <div style={s.pagina}>
+        <div style={s.vazio}>Carregando...</div>
+      </div>
+    )
+  }
+
+  const pendentes = provas.filter((p) => p.status === "pendente")
+  const liberadasRecentes = provas.filter((p) => p.status === "liberada").slice(0, 3)
 
   return (
     <div style={s.pagina}>
@@ -81,7 +88,7 @@ function AlunoHome({ usuario, onNavegar }) {
 }
 
 const s = {
-  pagina: { display: "flex", flexDirection: "column", gap: "40px", maxWidth: "1000px" },
+  pagina: { display: "flex", flexDirection: "column", gap: "40px", maxWidth: "1000px", margin: "0 auto" },
 
   saudacaoCard: { background: "#ffffff", border: "1px solid var(--nexos-border)", borderRadius: "16px", padding: "32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "24px" },
   saudacaoTitulo: { fontSize: "22px", fontWeight: "700", color: "var(--nexos-navy)", margin: "0 0 6px" },

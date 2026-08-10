@@ -93,6 +93,7 @@ const s = {
     flexDirection: "column",
     gap: "40px",
     maxWidth: "1000px",
+    margin: "0 auto",
   },
 
   saudacaoCard: {

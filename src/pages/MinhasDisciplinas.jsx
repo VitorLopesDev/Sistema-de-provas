@@ -386,7 +386,7 @@ function MinhasDisciplinas({ disciplinas, setDisciplinas, carregando, erro, inic
 }
 
 const s = {
-  pagina: { display: "flex", flexDirection: "column", gap: "24px", maxWidth: "820px" },
+  pagina: { display: "flex", flexDirection: "column", gap: "24px", maxWidth: "820px", margin: "0 auto" },
   cabecalho: { display: "flex", justifyContent: "space-between", alignItems: "flex-start" },
   titulo: { fontSize: "22px", fontWeight: "700", color: "var(--nexos-navy)", margin: "0 0 4px" },
   subtitulo: { fontSize: "13.5px", color: "var(--nexos-gray)", margin: 0 },

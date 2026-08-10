@@ -98,6 +98,22 @@ export const turmaService = {
       body: JSON.stringify({ codigo }),
     })
   },
+
+  /**
+   * @returns {Promise<{ professor: {id, nome}, alunos: Array<{id, nome}> }>}
+   */
+  listarPessoas(turmaId) {
+    return request(`/turmas/${turmaId}/pessoas`)
+  },
+
+  /**
+   * Arquiva a turma (ela deixa de aparecer como ativa, mas o histórico é preservado).
+   */
+  arquivar(id) {
+    return request(`/turmas/${id}/arquivar`, {
+      method: "PUT",
+    })
+  },
 }
 
 export const disciplinaService = {
@@ -212,6 +228,31 @@ export const questaoService = {
   deletar(id) {
     return request(`/questoes/${id}`, {
       method: "DELETE",
+    })
+  },
+}
+
+export const provaService = {
+  /**
+   * Provas das turmas em que o aluno autenticado está matriculado.
+   * @returns {Promise<Array<{ id, titulo, turma, status, dataInicio, dataFim,
+   *           nota, notaMaxima, questoes: Array<{id, pergunta, respostaAluno, correta, respostaCorreta}> }>>}
+   */
+  listarMinhas() {
+    return request("/provas/minhas")
+  },
+
+  buscarPorId(id) {
+    return request(`/provas/${id}`)
+  },
+
+  /**
+   * @param {Object<number, string>} respostas - { questaoId: textoResposta }
+   */
+  enviarRespostas(provaId, respostas) {
+    return request(`/provas/${provaId}/enviar`, {
+      method: "POST",
+      body: JSON.stringify({ respostas }),
     })
   },
 }

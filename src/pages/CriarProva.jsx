@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react"
+import { createPortal } from "react-dom"
 import {
   Check, X, ChevronDown, Search, Plus, Pencil, FileText, Eye, AlertTriangle,
 } from "lucide-react"
@@ -68,9 +69,11 @@ function Select({ value, onChange, opcoes, placeholder, disabled }) {
 
 // ── Etapa 1: Dados da prova ────────────────────────────────────────────────
 function EtapaDados({ dados, setDados, disciplinas, turmas }) {
+   const disciplinaSelecionada = disciplinas.find((d) => String(d.id) === String(dados.disciplinaId))
+
   const turmasDaDisciplina = useMemo(
-    () => turmas.filter((t) => String(t.disciplinaId) === String(dados.disciplinaId)),
-    [turmas, dados.disciplinaId]
+    () => turmas.filter((t) => t.disciplina === disciplinaSelecionada?.nome),
+    [turmas, disciplinaSelecionada]
   )
 
   return (
@@ -160,7 +163,7 @@ function EtapaConfiguracoes({ config, setConfig }) {
         <AlertTriangle size={20} color="#C77A09" strokeWidth={2.2} style={s.avisoIcone} />
         <div style={s.avisoConteudo}>
             <span style={s.avisoTitulo}>O envio das respostas é automático. </span>
-            <span style={s.avisoTexto}>Ao fim do tempo limite, as respostas do aluno serão registradas,independentemente de ele ter concluído a prova ou não.</span>
+            <span style={s.avisoTexto}>Ao fim do tempo limite, as respostas do aluno serão registradas, independentemente de ele ter concluído a prova ou não.</span>
         </div>
       </div>
     </>
@@ -267,44 +270,95 @@ function EtapaQuestoes({ questoes, disciplinas, questoesIds, setQuestoesIds, dis
 }
 
 //* Nova funcionalidade
-function PreviewProva({ dados, config, questoesSelecionadas, onFechar }) {
-  return (
-    <div style={s.overlay} onClick={onFechar}>
-      <div style={s.previewPopup} className="nexos-card" onClick={(e) => e.stopPropagation()}>
-        <button style={s.popupFechar} className="nexos-icon-btn" onClick={onFechar}>
-          <X size={16} color="var(--nexos-gray)" />
-        </button>
+function PreviewProva({ dados, config, questoesSelecionadas, disciplinas, turmas, onFechar }) {
+  const disciplina = disciplinas.find((d) => String(d.id) === String(dados.disciplinaId))
+  const turma = turmas.find((t) => String(t.id) === String(dados.turmaId))
 
-        <div style={s.previewTag}>Visão do aluno</div>
-        <h2 style={s.previewTitulo}>{dados.titulo || "Sem título"}</h2>
-        <div style={s.previewMeta}>
-          <span>{config.tempoLimite} minutos</span>
-          <span>·</span>
-          <span>{questoesSelecionadas.length} questão(ões)</span>
+  return createPortal(
+    <div style={s.previewOverlay} onClick={onFechar}>
+      <div style={s.previewPagina} onClick={(e) => e.stopPropagation()}>
+
+        <div style={s.previewTopo}>
+          <span style={s.previewTag}>Pré-visualização — visão do aluno</span>
+          <button style={s.previewBtnFechar} className="nexos-btn" onClick={onFechar}>
+            <X size={15} /> Fechar pré-visualização
+          </button>
         </div>
 
-        {dados.instrucoes && (
-          <div style={s.previewInstrucoes}>{dados.instrucoes}</div>
-        )}
+        <div style={s.previewConteudo}>
 
-        <div style={s.previewLista}>
-          {questoesSelecionadas.map((q, i) => (
-            <div key={q.id} style={s.previewQuestao}>
-              <div style={s.previewQuestaoNumero}>Questão {i + 1}</div>
-              <p style={s.previewEnunciado}>{q.enunciado}</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {q.alternativas.map((alt, idx) => (
-                  <div key={alt.id} style={s.previewAlternativa}>
-                    <span style={s.previewAlternativaLetra}>{String.fromCharCode(65 + idx)}</span>
-                    <span>{alt.texto}</span>
-                  </div>
-                ))}
+          <div style={s.previewCabecalhoCard} className="nexos-card">
+            <div style={s.previewAlunoRow}>
+              <div style={s.previewAvatar}>A</div>
+              <div>
+                <div style={s.previewAlunoLabel}>Nome do aluno</div>
+                <div style={s.previewAlunoNome}>Aluno Exemplo</div>
               </div>
             </div>
-          ))}
+
+            <div style={s.previewLinha} />
+
+            <h1 style={s.previewTitulo}>{dados.titulo || "Sem título"}</h1>
+
+            <div style={s.previewMetaGrid}>
+              <div style={s.previewMetaItem}>
+                <span style={s.previewMetaLabel}>Disciplina</span>
+                <span style={s.previewMetaValor}>{disciplina?.nome || "—"}</span>
+              </div>
+              <div style={s.previewMetaItem}>
+                <span style={s.previewMetaLabel}>Turma</span>
+                <span style={s.previewMetaValor}>{turma?.nome || "—"}</span>
+              </div>
+              <div style={s.previewMetaItem}>
+                <span style={s.previewMetaLabel}>Tempo limite</span>
+                <span style={s.previewMetaValor}>{config.tempoLimite ? `${config.tempoLimite} minutos` : "—"}</span>
+              </div>
+              <div style={s.previewMetaItem}>
+                <span style={s.previewMetaLabel}>Disponível</span>
+                <span style={s.previewMetaValor}>
+                  {config.dataInicio && config.horaInicio ? `${config.dataInicio} ${config.horaInicio}` : "—"}
+                  {" → "}
+                  {config.dataFim && config.horaFim ? `${config.dataFim} ${config.horaFim}` : "—"}
+                </span>
+              </div>
+            </div>
+
+            {dados.instrucoes && (
+              <>
+                <div style={s.previewLinha} />
+                <div>
+                  <div style={s.previewMetaLabel}>Instruções</div>
+                  <p style={s.previewInstrucoes}>{dados.instrucoes}</p>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {questoesSelecionadas.length === 0 ? (
+              <div style={s.previewVazio}>Nenhuma questão selecionada ainda.</div>
+            ) : (
+              questoesSelecionadas.map((q, i) => (
+                <div key={q.id} style={s.previewQuestaoCard} className="nexos-card">
+                  <div style={s.previewQuestaoNumero}>Questão {i + 1}</div>
+                  <p style={s.previewEnunciado}>{q.enunciado}</p>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {q.alternativas.map((alt, idx) => (
+                      <label key={alt.id} style={s.previewAlternativa}>
+                        <span style={s.previewAlternativaLetra}>{String.fromCharCode(65 + idx)}</span>
+                        <span>{alt.texto}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
@@ -366,6 +420,8 @@ function EtapaRevisao({ dados, config, questoesIds, disciplinas, turmas, questoe
           dados={dados}
           config={config}
           questoesSelecionadas={questoesSelecionadas}
+          disciplinas={disciplinas}
+          turmas={turmas}
           onFechar={() => setPreviewAberto(false)}
         />
       )}
@@ -382,9 +438,34 @@ function RevisaoItem({ label, valor, bloco }) {
   )
 }
 
+function ModalConfirmarCancelar({ onFicar, onSair }) {
+  return (
+    <div style={s.overlay} onClick={onFicar}>
+      <div style={s.modalConfirmar} className="nexos-card" onClick={(e) => e.stopPropagation()}>
+        <div style={s.modalIcone}>
+          <AlertTriangle size={22} color="#b8860b" />
+        </div>
+        <h3 style={s.modalTitulo}>Cancelar criação da prova?</h3>
+        <p style={s.modalTexto}>
+          Todo o progresso preenchido até aqui será perdido e não poderá ser recuperado.
+        </p>
+        <div style={s.modalBotoes}>
+          <button style={s.btnCancelarModal} className="nexos-btn" onClick={onFicar}>
+            Continuar editando
+          </button>
+          <button style={s.btnConfirmarCancelar} className="nexos-btn" onClick={onSair}>
+            <X size={14} /> Descartar prova
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── Componente principal ───────────────────────────────────────────────────
 function CriarProva({ turmas, questoes, disciplinas, turmaPreSelecionadaId, onSalvar, onCancelar }) {
   const [etapa, setEtapa] = useState(0)
+  const [modalCancelarAberto, setModalCancelarAberto] = useState(false)
 
   const turmaInicial = turmas.find((t) => t.id === turmaPreSelecionadaId)
 
@@ -415,7 +496,6 @@ function CriarProva({ turmas, questoes, disciplinas, turmaPreSelecionadaId, onSa
   }
 
   function voltar() {
-    if (etapa === 0) { onCancelar(); return }
     setEtapa((e) => Math.max(e - 1, 0))
   }
 
@@ -473,13 +553,15 @@ function CriarProva({ turmas, questoes, disciplinas, turmaPreSelecionadaId, onSa
       )}
 
       <div style={s.formBotoes}>
-        <button style={s.btnCancelar} className="nexos-btn" onClick={onCancelar}>
+        <button style={s.btnCancelar} className="nexos-btn" onClick={() => setModalCancelarAberto(true)}>
           <X size={15} /> Cancelar
         </button>
         <div style={{ display: "flex", gap: "10px" }}>
+          {etapa > 0 && (
           <button style={s.btnVoltar} className="nexos-btn" onClick={voltar}>
             Voltar
           </button>
+          )}
           {etapa < ETAPAS.length - 1 ? (
             <button
               style={{ ...s.btnAvancar, opacity: validoEtapa[etapa] ? 1 : 0.5, cursor: validoEtapa[etapa] ? "pointer" : "not-allowed" }}
@@ -493,7 +575,11 @@ function CriarProva({ turmas, questoes, disciplinas, turmaPreSelecionadaId, onSa
               <Check size={15} /> Publicar
             </button>
           )}
-        </div>
+        </div> {modalCancelarAberto && ( <ModalConfirmarCancelar
+          onFicar={() => setModalCancelarAberto(false)}
+          onSair={onCancelar}
+        />
+      )}
       </div>
     </div>
   )
@@ -595,7 +681,18 @@ const s = {
     fontSize: "12.5px", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
   },
   btnAdicionarAtivo: { background: "rgba(26,156,92,0.1)", borderColor: "#1a9c5c", color: "#1a9c5c" },
-
+  btnCancelarModal: {
+    display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", flex: 1,
+    background: "#fff", color: "var(--nexos-navy)", border: "1.5px solid var(--nexos-border)",
+    borderRadius: "10px", padding: "10px", fontSize: "13.5px", fontWeight: "600",
+    cursor: "pointer", fontFamily: "inherit",
+  },
+  btnConfirmarCancelar: {
+    display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", flex: 1,
+    background: "var(--nexos-error)", color: "#fff", border: "none",
+    borderRadius: "10px", padding: "10px", fontSize: "13.5px", fontWeight: "600",
+    cursor: "pointer", fontFamily: "inherit",
+  },
   alternativa: {
     display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "var(--nexos-navy)",
     padding: "7px 10px", borderRadius: "8px", background: "var(--nexos-bg)",
@@ -609,6 +706,18 @@ const s = {
   revisaoLabel: { fontSize: "11.5px", color: "var(--nexos-gray)", marginBottom: "3px" },
   revisaoValor: { fontSize: "13.5px", color: "var(--nexos-navy)", fontWeight: "500" },
   revisaoQuestoes: { display: "flex", alignItems: "center", gap: "8px", fontSize: "13.5px", color: "var(--nexos-navy)" },
+  modalConfirmar: {
+    background: "#fff", borderRadius: "16px", padding: "28px", width: "380px",
+    display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "8px",
+    boxShadow: "0 24px 60px rgba(5,20,51,0.25)",
+  },
+  modalIcone: {
+    width: "44px", height: "44px", borderRadius: "12px", background: "rgba(184,134,11,0.14)",
+    display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "6px",
+  },
+  modalTitulo: { fontSize: "16px", fontWeight: "700", color: "var(--nexos-navy)", margin: 0 },
+  modalTexto: { fontSize: "13px", color: "var(--nexos-gray)", lineHeight: 1.6, margin: "0 0 12px" },
+  modalBotoes: { display: "flex", gap: "10px", width: "100%" },
 
   btnPreview: {
     display: "flex", alignItems: "center", gap: "8px", marginTop: "14px",
@@ -618,8 +727,8 @@ const s = {
   },
 
   overlay: {
-    position: "fixed", inset: 0, background: "rgba(5,10,26,0.55)", display: "flex",
-    alignItems: "center", justifyContent: "center", zIndex: 100, backdropFilter: "blur(3px)", padding: "20px",
+    position: "fixed", inset: 0, background: "rgba(5,10,26,0.5)", display: "flex",
+    alignItems: "center", justifyContent: "center", zIndex: 200, backdropFilter: "blur(3px)", padding: "20px",
   },
   previewPopup: {
     position: "relative", background: "#fff", borderRadius: "18px", padding: "32px", width: "560px",
@@ -628,26 +737,82 @@ const s = {
   },
   popupFechar: { position: "absolute", top: "14px", right: "14px", background: "none", border: "none", cursor: "pointer", borderRadius: "8px", padding: "4px" },
 
+  previewOverlay: {
+    position: "fixed", inset: 0, background: "rgba(5,10,26,0.55)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    zIndex: 300, backdropFilter: "blur(3px)", padding: "40px 20px",
+  },
+  previewPagina: {
+    background: "#fff",
+    borderRadius: "20px",
+    width: "100%",
+    maxWidth: "820px",
+    maxHeight: "calc(100vh - 80px)",
+    boxShadow: "0 24px 60px rgba(5,20,51,0.3)",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+  },
+   previewTopo: {
+    position: "sticky", top: 0, zIndex: 10,
+    display: "flex", justifyContent: "space-between", alignItems: "center",
+    padding: "16px 32px", background: "#fff", borderBottom: "1px solid var(--nexos-border)",
+  },
   previewTag: {
-    fontSize: "11px", fontWeight: "700", color: "var(--nexos-blue)", textTransform: "uppercase",
-    letterSpacing: "0.06em", background: "var(--nexos-icon-bg)", padding: "4px 10px",
-    borderRadius: "999px", width: "fit-content",
+    fontSize: "12px", fontWeight: "700", color: "var(--nexos-blue)", textTransform: "uppercase",
+    letterSpacing: "0.06em", background: "var(--nexos-icon-bg)", padding: "6px 12px", borderRadius: "999px",
   },
-  previewTitulo: { fontSize: "19px", fontWeight: "700", color: "var(--nexos-navy)", margin: 0, paddingRight: "24px" },
+  previewTitulo: { fontSize: "21px", fontWeight: "700", color: "var(--nexos-navy)", margin: 0 },
   previewMeta: { display: "flex", gap: "8px", fontSize: "12.5px", color: "var(--nexos-gray)" },
-  previewInstrucoes: {
-    fontSize: "12.5px", color: "var(--nexos-gray)", background: "var(--nexos-bg)",
-    border: "1px solid var(--nexos-border)", borderRadius: "10px", padding: "12px 14px", lineHeight: 1.6,
-    whiteSpace: "pre-wrap",
+  previewMetaGrid: {
+    display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px",
   },
-
+  previewMetaItem: { display: "flex", flexDirection: "column", gap: "3px" },
+  previewMetaLabel: { fontSize: "11.5px", fontWeight: "600", color: "var(--nexos-gray)", textTransform: "uppercase", letterSpacing: "0.03em" },
+  previewMetaValor: { fontSize: "13.5px", color: "var(--nexos-navy)", fontWeight: "500" },
+  previewInstrucoes: { fontSize: "13px", color: "var(--nexos-navy)", margin: "6px 0 0", lineHeight: 1.6, whiteSpace: "pre-wrap" },
+  previewVazio: {
+    fontSize: "13.5px", color: "var(--nexos-gray)", background: "var(--nexos-bg)",
+    border: "1px dashed var(--nexos-border)", borderRadius: "12px", padding: "28px", textAlign: "center",
+  },
+  previewBtnFechar: {
+    display: "flex", alignItems: "center", gap: "8px",
+    background: "#fff", color: "var(--nexos-navy)", border: "1.5px solid var(--nexos-border)",
+    borderRadius: "10px", padding: "9px 16px", fontSize: "13px", fontWeight: "600",
+    cursor: "pointer", fontFamily: "inherit",
+  },
+  previewConteudo: {
+    maxWidth: "760px", width: "100%", margin: "0 auto",
+    padding: "36px 24px 60px",
+    display: "flex", flexDirection: "column", gap: "20px",
+    overflowY: "auto",
+  },
+  previewCabecalhoCard: {
+    background: "#fff", border: "1px solid var(--nexos-border)", borderRadius: "16px",
+    padding: "28px", display: "flex", flexDirection: "column", gap: "16px",
+  },
+  previewAlunoRow: { display: "flex", alignItems: "center", gap: "12px" },
+  previewAvatar: {
+    width: "42px", height: "42px", borderRadius: "50%",
+    background: "linear-gradient(135deg, var(--nexos-blue), var(--nexos-purple))",
+    color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+    fontSize: "16px", fontWeight: "700",
+  },
+  previewAlunoLabel: { fontSize: "11.5px", color: "var(--nexos-gray)" },
+  previewAlunoNome: { fontSize: "14.5px", fontWeight: "600", color: "var(--nexos-navy)" },
   previewLista: { display: "flex", flexDirection: "column", gap: "20px" },
+   previewLinha: { height: "1px", background: "var(--nexos-border)" },
   previewQuestao: { display: "flex", flexDirection: "column", gap: "10px" },
+  previewQuestaoCard: {
+    background: "#fff", border: "1px solid var(--nexos-border)", borderRadius: "14px",
+    padding: "24px", display: "flex", flexDirection: "column", gap: "12px",
+  },
   previewQuestaoNumero: { fontSize: "12px", fontWeight: "700", color: "var(--nexos-blue)", textTransform: "uppercase", letterSpacing: "0.04em" },
-  previewEnunciado: { fontSize: "14px", color: "var(--nexos-navy)", margin: 0, lineHeight: 1.5 },
+  previewEnunciado: { fontSize: "14.5px", color: "var(--nexos-navy)", margin: 0, lineHeight: 1.6 },
   previewAlternativa: {
-    display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "13px", color: "var(--nexos-navy)",
-    padding: "9px 12px", borderRadius: "8px", border: "1px solid var(--nexos-border)", background: "var(--nexos-bg)",
+    display: "flex", alignItems: "flex-start", gap: "10px", fontSize: "13.5px", color: "var(--nexos-navy)",
+    padding: "11px 14px", borderRadius: "10px", border: "1px solid var(--nexos-border)",
+    background: "var(--nexos-bg)", cursor: "default",
   },
   previewAlternativaLetra: {
     fontWeight: "700", color: "var(--nexos-gray)", minWidth: "16px",

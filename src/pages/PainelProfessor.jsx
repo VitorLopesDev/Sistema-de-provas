@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react"
 import Sidebar from "../components/Sidebar"
 import { Clock, AlertTriangle, CheckCircle, ChevronRight, ArrowLeft, Eye, Zap, Calendar, Archive, Pencil, Trash2, Send } from "lucide-react"
-import { PROVAS_SIMULADAS } from "../data/provasSimuladas"
-import { turmaService, disciplinaService, questaoService } from "../services/api"
+import { turmaService, disciplinaService, questaoService, provaService } from "../services/api"
 import PainelHome from "./PainelHome"
 import Turmas from "./Turmas"
 import MinhasDisciplinas from "./MinhasDisciplinas"
@@ -11,7 +10,7 @@ import PerfilProfessor from "./PerfilProfessor"
 import CriarProva from "./CriarProva"
 
 // ── Tela: Lista de provas ──────────────────────────────────────────────────
-function ListaProvas({ provas: PROVAS_SIMULADAS, onVerDetalhe, onCriar }) {
+function ListaProvas({ provas: PROVAS_SIMULADAS, carregando, erro, onVerDetalhe, onCriar }) {
   const ativas     = PROVAS_SIMULADAS.filter((p) => {
     const agora = new Date()
     const inicio = new Date(p.dataInicio.replace(/(\d{2})\/(\d{2})\/(\d{4})/, "$3-$2-$1"))
@@ -94,9 +93,17 @@ function ListaProvas({ provas: PROVAS_SIMULADAS, onVerDetalhe, onCriar }) {
         <button style={s.btnCriar} className="nexos-btn" onClick={onCriar}>+ Nova prova</button>
       </div>
 
-      <Secao titulo="Ativas"     provas={ativas}     icone={Zap}      corIcone="#105EDC" />
-      <Secao titulo="Agendadas"  provas={agendadas}  icone={Calendar} corIcone="var(--nexos-navy)" />
-      <Secao titulo="Encerradas" provas={encerradas} icone={Archive}  corIcone="var(--nexos-gray)" />
+      {carregando ? (
+        <div style={s.vazio}>Carregando provas...</div>
+      ) : erro ? (
+        <div style={s.vazio}>{erro}</div>
+      ) : (
+        <>
+          <Secao titulo="Ativas"     provas={ativas}     icone={Zap}      corIcone="#105EDC" />
+          <Secao titulo="Agendadas"  provas={agendadas}  icone={Calendar} corIcone="var(--nexos-navy)" />
+          <Secao titulo="Encerradas" provas={encerradas} icone={Archive}  corIcone="var(--nexos-gray)" />
+        </>
+      )}
     </div>
   )
 }
@@ -197,7 +204,8 @@ function DetalheProva({ prova, onVoltar, onExcluir, onLiberar }) {
 // ── Componente principal ───────────────────────────────────────────────────
 function PainelProfessor({ usuario, onSair, onAtualizarUsuario }) {
   const [paginaAtiva, setPaginaAtiva] = useState("home")
-  const [provas, setProvas] = useState(PROVAS_SIMULADAS)
+  const [sidebarAberto, setSidebarAberto] = useState(true)
+
   const [disciplinas, setDisciplinas] = useState([])
   const [disciplinasCarregando, setDisciplinasCarregando] = useState(true)
   const [disciplinasErro, setDisciplinasErro] = useState("")
@@ -219,6 +227,7 @@ function PainelProfessor({ usuario, onSair, onAtualizarUsuario }) {
       .catch((err) => setQuestoesErro(err.message || "Não foi possível carregar as questões."))
       .finally(() => setQuestoesCarregando(false))
   }, [])
+
   const [turmas, setTurmas] = useState([])
   const [turmasCarregando, setTurmasCarregando] = useState(true)
   const [turmasErro, setTurmasErro] = useState("")
@@ -230,8 +239,20 @@ function PainelProfessor({ usuario, onSair, onAtualizarUsuario }) {
       .catch((err) => setTurmasErro(err.message || "Não foi possível carregar as turmas."))
       .finally(() => setTurmasCarregando(false))
   }, [])
+
+  const [provas, setProvas] = useState([])
+  const [provasCarregando, setProvasCarregando] = useState(true)
+  const [provasErro, setProvasErro] = useState("")
+
+  useEffect(() => {
+    provaService
+      .listarMinhas()
+      .then(setProvas)
+      .catch((err) => setProvasErro(err.message || "Não foi possível carregar as provas."))
+      .finally(() => setProvasCarregando(false))
+  }, [])
+
   const [provaDetalhe, setProvaDetalhe] = useState(null)
-  const [sidebarAberto, setSidebarAberto] = useState(true)
   const [turmasIniciarCriando, setTurmasIniciarCriando] = useState(false)
   const [disciplinasIniciarCriando, setDisciplinasIniciarCriando] = useState(false)
   const [questoesIniciarCriando, setQuestoesIniciarCriando] = useState(false)
@@ -258,27 +279,27 @@ function PainelProfessor({ usuario, onSair, onAtualizarUsuario }) {
   }
 
   function tentarCriarProva(turmaId = null) {
-  if (disciplinas.length === 0) {
-    window.alert("Você ainda não tem nenhuma disciplina cadastrada. Cadastre uma disciplina antes de criar uma prova.")
-    navegar("disciplinas", { criar: true })
-    return
+    if (disciplinas.length === 0) {
+      window.alert("Você ainda não tem nenhuma disciplina cadastrada. Cadastre uma disciplina antes de criar uma prova.")
+      navegar("disciplinas", { criar: true })
+      return
+    }
+    if (turmas.length === 0) {
+      window.alert("Você ainda não tem nenhuma turma cadastrada. Cadastre uma turma antes de criar uma prova.")
+      navegar("turmas", { criar: true })
+      return
+    }
+    setTurmaPreSelecionada(turmaId)
+    setPaginaAtiva("provas")
+    setProvaDetalhe(null)
+    setCriandoProva(true)
   }
-  if (turmas.length === 0) {
-    window.alert("Você ainda não tem nenhuma turma cadastrada. Cadastre uma turma antes de criar uma prova.")
-    navegar("turmas", { criar: true })
-    return
-  }
-  setTurmaPreSelecionada(turmaId)
-  setPaginaAtiva("provas")
-  setProvaDetalhe(null)
-  setCriandoProva(true)
-}
 
-function salvarNovaProva(novaProva) {
-  setProvas([novaProva, ...provas])
-  setCriandoProva(false)
-  setTurmaPreSelecionada(null)
-}
+  function salvarNovaProva(novaProva) {
+    setProvas([novaProva, ...provas])
+    setCriandoProva(false)
+    setTurmaPreSelecionada(null)
+  }
 
   function renderConteudo() {
     if (paginaAtiva === "home") {
@@ -314,12 +335,12 @@ function salvarNovaProva(novaProva) {
       if (criandoProva) {
         return (
           <CriarProva
-              turmas={turmas}
-              questoes={questoes}
-              disciplinas={disciplinas}
-              turmaPreSelecionadaId={turmaPreSelecionada}
-              onSalvar={salvarNovaProva}
-              onCancelar={() => { setCriandoProva(false); setTurmaPreSelecionada(null) }}
+            turmas={turmas}
+            questoes={questoes}
+            disciplinas={disciplinas}
+            turmaPreSelecionadaId={turmaPreSelecionada}
+            onSalvar={salvarNovaProva}
+            onCancelar={() => { setCriandoProva(false); setTurmaPreSelecionada(null) }}
           />
         )
       }
@@ -334,7 +355,15 @@ function salvarNovaProva(novaProva) {
           />
         )
       }
-      return <ListaProvas provas={provas} onVerDetalhe={(p) => setProvaDetalhe(p)} onCriar={tentarCriarProva} />
+      return (
+        <ListaProvas
+          provas={provas}
+          carregando={provasCarregando}
+          erro={provasErro}
+          onVerDetalhe={(p) => setProvaDetalhe(p)}
+          onCriar={tentarCriarProva}
+        />
+      )
     }
     if (paginaAtiva === "turmas") {
       return (
@@ -678,6 +707,16 @@ const s = {
     height: "300px",
     color: "var(--nexos-gray)",
     fontSize: "14px",
+  },
+
+  vazio: {
+    fontSize: "13.5px",
+    color: "var(--nexos-gray)",
+    background: "var(--nexos-bg)",
+    border: "1px dashed var(--nexos-border)",
+    borderRadius: "12px",
+    padding: "24px",
+    textAlign: "center",
   },
 }
 
