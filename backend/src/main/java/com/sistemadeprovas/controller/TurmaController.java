@@ -1,6 +1,7 @@
 package com.sistemadeprovas.controller;
 
 import com.sistemadeprovas.dto.EntrarTurmaRequest;
+import com.sistemadeprovas.dto.PessoasTurmaResponse;
 import com.sistemadeprovas.dto.TurmaRequest;
 import com.sistemadeprovas.dto.TurmaResponse;
 import com.sistemadeprovas.service.TurmaService;
@@ -49,6 +50,16 @@ public class TurmaController {
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         turmaService.deletar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/arquivar")
+    public ResponseEntity<TurmaResponse> arquivar(@PathVariable Long id) {
+        return ResponseEntity.ok(turmaService.arquivar(id));
+    }
+
+    @GetMapping("/{id}/pessoas")
+    public ResponseEntity<PessoasTurmaResponse> listarPessoas(@PathVariable Long id) {
+        return ResponseEntity.ok(turmaService.listarPessoas(id));
     }
 
     @PostMapping("/entrar")

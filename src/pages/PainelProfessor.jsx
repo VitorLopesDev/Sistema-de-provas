@@ -269,13 +269,23 @@ function PainelProfessor({ usuario, onSair, onAtualizarUsuario }) {
     setQuestoesIniciarCriando(id === "questoes" && !!opcoes.criar)
   }
 
-  function excluirProva(id) {
-    setProvas(provas.filter((p) => p.id !== id))
+  async function excluirProva(id) {
+    try {
+      await provaService.deletar(id)
+      setProvas(provas.filter((p) => p.id !== id))
+    } catch (err) {
+      window.alert(err.message || "Não foi possível excluir a prova.")
+    }
   }
 
-  function liberarProva(id) {
-    setProvas(provas.map((p) => (p.id === id ? { ...p, liberada: !p.liberada } : p)))
-    setProvaDetalhe((atual) => (atual && atual.id === id ? { ...atual, liberada: !atual.liberada } : atual))
+  async function liberarProva(id) {
+    try {
+      const provaAtualizada = await provaService.alternarLiberacao(id)
+      setProvas(provas.map((p) => (p.id === id ? provaAtualizada : p)))
+      setProvaDetalhe((atual) => (atual && atual.id === id ? provaAtualizada : atual))
+    } catch (err) {
+      window.alert(err.message || "Não foi possível atualizar a liberação da prova.")
+    }
   }
 
   function tentarCriarProva(turmaId = null) {

@@ -3,6 +3,7 @@ import { createPortal } from "react-dom"
 import {
   Check, X, ChevronDown, Search, Plus, Pencil, FileText, Eye, AlertTriangle,
 } from "lucide-react"
+import { provaService } from "../services/api"
 
 const ETAPAS = ["Dados da prova", "Configurações da prova", "Questões", "Revisão/Publicação"]
 const DURACOES = [30, 45, 60, 90, 120, 150, 180]
@@ -482,6 +483,8 @@ function CriarProva({ turmas, questoes, disciplinas, turmaPreSelecionadaId, onSa
     modoSeguro: true,
   })
   const [questoesIds, setQuestoesIds] = useState([])
+  const [enviando, setEnviando] = useState(false)
+  const [erro, setErro] = useState("")
 
   const validoEtapa = [
     dados.titulo.trim() && dados.disciplinaId && dados.turmaId,
@@ -499,26 +502,26 @@ function CriarProva({ turmas, questoes, disciplinas, turmaPreSelecionadaId, onSa
     setEtapa((e) => Math.max(e - 1, 0))
   }
 
-  function publicar() {
-    const turma = turmas.find((t) => String(t.id) === dados.turmaId)
-    const [ai, mi, yi] = [config.dataInicio.split("-")[2], config.dataInicio.split("-")[1], config.dataInicio.split("-")[0]]
-    const [af, mf, yf] = [config.dataFim.split("-")[2], config.dataFim.split("-")[1], config.dataFim.split("-")[0]]
+  async function publicar() {
+    if (enviando) return
+    setErro("")
+    setEnviando(true)
 
-    onSalvar({
-      id: Date.now(),
-      titulo: dados.titulo.trim(),
-      instrucoes: dados.instrucoes,
-      turmaId: turma.id,
-      turma: turma.nome,
-      dataInicio: `${ai}/${mi}/${yi} ${config.horaInicio}`,
-      dataFim: `${af}/${mf}/${yf} ${config.horaFim}`,
-      tempoLimite: Number(config.tempoLimite),
-      modoSeguro: config.modoSeguro,
-      totalAlunos: turma.totalAlunos,
-      questoesIds,
-      alunos: [],
-      liberada: false,
-    })
+    try {
+      const provaCriada = await provaService.criar(Number(dados.turmaId), {
+        titulo: dados.titulo.trim(),
+        instrucoes: dados.instrucoes.trim() || null,
+        dataInicio: `${config.dataInicio}T${config.horaInicio}:00`,
+        dataFim: `${config.dataFim}T${config.horaFim}:00`,
+        tempoLimiteMinutos: Number(config.tempoLimite),
+        modoSeguro: config.modoSeguro,
+        questoesIds,
+      })
+      onSalvar(provaCriada)
+    } catch (err) {
+      setErro(err.message || "Não foi possível publicar a prova.")
+      setEnviando(false)
+    }
   }
 
   return (
@@ -556,6 +559,7 @@ function CriarProva({ turmas, questoes, disciplinas, turmaPreSelecionadaId, onSa
         <button style={s.btnCancelar} className="nexos-btn" onClick={() => setModalCancelarAberto(true)}>
           <X size={15} /> Cancelar
         </button>
+        {erro && <p style={s.erro}>{erro}</p>}
         <div style={{ display: "flex", gap: "10px" }}>
           {etapa > 0 && (
           <button style={s.btnVoltar} className="nexos-btn" onClick={voltar}>
@@ -571,8 +575,12 @@ function CriarProva({ turmas, questoes, disciplinas, turmaPreSelecionadaId, onSa
               Próximo
             </button>
           ) : (
-            <button style={s.btnAvancar} className="nexos-btn" onClick={publicar}>
-              <Check size={15} /> Publicar
+            <button
+              style={{ ...s.btnAvancar, opacity: enviando ? 0.6 : 1, cursor: enviando ? "not-allowed" : "pointer" }}
+              className="nexos-btn"
+              onClick={publicar}
+            >
+              <Check size={15} /> {enviando ? "Publicando..." : "Publicar"}
             </button>
           )}
         </div> {modalCancelarAberto && ( <ModalConfirmarCancelar
@@ -587,6 +595,7 @@ function CriarProva({ turmas, questoes, disciplinas, turmaPreSelecionadaId, onSa
 
 const s = {
   pagina: { maxWidth: "820px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "4px", padding: "0 4px" },
+  erro: { fontSize: "13px", color: "#d33", margin: "8px 0 0", textAlign: "right" },
   titulo: { fontSize: "22px", fontWeight: "700", color: "var(--nexos-navy)", margin: "32px 0 4px" },
   subtitulo: { fontSize: "13.5px", color: "var(--nexos-gray)", margin: "0 0 24px" },
 

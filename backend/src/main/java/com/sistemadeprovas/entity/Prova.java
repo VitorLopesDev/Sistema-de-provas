@@ -28,6 +28,9 @@ public class Prova {
     @Column(nullable = false)
     private String titulo;
 
+    @Column(columnDefinition = "TEXT")
+    private String instrucoes; // opcional — texto livre mostrado ao aluno antes de iniciar
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "turma_id", nullable = false)
     private Turma turma;
@@ -40,6 +43,16 @@ public class Prova {
 
     @Column(nullable = false)
     private Integer tempoLimiteMinutos;
+
+    // Modo seguro: tela cheia + monitoramento de troca de aba durante a prova
+    @Column(nullable = false)
+    private boolean modoSeguro = false;
+
+    // Liberada para o aluno revisar a prova corrigida depois de encerrada.
+    @Column(nullable = false)
+    private boolean liberada = false;
+
+
 
     // O status (ativa/agendada/encerrada) não é uma coluna — é calculado a partir
     // de dataInicio/dataFim no momento da consulta (é assim que o front já faz hoje).

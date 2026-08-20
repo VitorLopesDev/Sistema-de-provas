@@ -63,7 +63,7 @@ export const turmaService = {
   },
 
   /**
-   * @param {{ nome: string, disciplina: string, turno: string, nivel: string }} dados
+   * @param {{ nome: string, disciplinaId: number, turno: string, nivel: string }} dados
    */
   criar(dados) {
     return request("/turmas", {
@@ -242,8 +242,46 @@ export const provaService = {
     return request("/provas/minhas")
   },
 
+  listarPorTurma(turmaId) {
+    return request(`/turmas/${turmaId}/provas`)
+  },
+
+  /**
+   * @param {{ titulo: string, instrucoes?: string, dataInicio: string, dataFim: string,
+   *           tempoLimiteMinutos: number, modoSeguro: boolean, questoesIds: number[] }} dados
+   *   dataInicio/dataFim no formato ISO (ex: "2026-08-10T14:00:00").
+   */
+  criar(turmaId, dados) {
+    return request(`/turmas/${turmaId}/provas`, {
+      method: "POST",
+      body: JSON.stringify(dados),
+    })
+  },
+
   buscarPorId(id) {
     return request(`/provas/${id}`)
+  },
+
+  atualizar(id, dados) {
+    return request(`/provas/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(dados),
+    })
+  },
+
+  deletar(id) {
+    return request(`/provas/${id}`, {
+      method: "DELETE",
+    })
+  },
+
+  /**
+   * Alterna se a prova está liberada para o aluno revisar a correção.
+   */
+  alternarLiberacao(id) {
+    return request(`/provas/${id}/liberar`, {
+      method: "PATCH",
+    })
   },
 
   /**

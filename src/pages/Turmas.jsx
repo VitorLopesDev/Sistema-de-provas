@@ -62,12 +62,10 @@ function CriarTurma({ disciplinas, onCancelar, onCriar }) {
     setErro("")
     setEnviando(true)
 
-    const disciplina = disciplinas.find((d) => d.id === Number(disciplinaId))
-
     try {
       const turmaCriada = await turmaService.criar({
         nome: nomeTurma,
-        disciplina: disciplina.nome,
+        disciplinaId: Number(disciplinaId),
         turno,
         nivel,
       })
@@ -349,11 +347,17 @@ function AbaConfiguracoes({ turma, disciplinas, onAtualizarTurma, onArquivada })
   async function salvarCampo(campo, valor) {
     const dados = {
       nome: turma.nome,
-      disciplina: turma.disciplina,
+      disciplinaId: turma.disciplinaId,
       turno: turma.turno,
       nivel: turma.nivel,
-      [campo]: valor,
     }
+
+    if (campo === "disciplina") {
+      dados.disciplinaId = disciplinas.find((d) => d.nome === valor)?.id
+    } else {
+      dados[campo] = valor
+    }
+
     const turmaAtualizada = await turmaService.atualizar(turma.id, dados)
     onAtualizarTurma(turmaAtualizada)
   }

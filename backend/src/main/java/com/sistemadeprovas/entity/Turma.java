@@ -26,8 +26,9 @@ public class Turma {
     @Column(nullable = false)
     private String nome; // ex: "P5 — Ciência da Computação"
 
-    @Column(nullable = false)
-    private String disciplina; // ex: "Banco de Dados I"
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "disciplina_id", nullable = false)
+    private Disciplina disciplina;
 
     @Column(nullable = false)
     private String turno; // "Matutino" | "Vespertino" | "Noturno"
@@ -42,4 +43,7 @@ public class Turma {
     @ManyToOne(optional = false)
     @JoinColumn(name = "professor_id", nullable = false)
     private Usuario professor;
+
+    @Column(nullable = false)
+    private boolean arquivada = false;
 }
