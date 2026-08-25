@@ -90,7 +90,6 @@ public class DisciplinaService {
         }
     }
 
-    // --- helpers ---
 
     private Disciplina buscarOuFalhar(Long id) {
         return disciplinaRepository.findById(id)

@@ -8,9 +8,9 @@ public record ProvaResponse(
         String instrucoes,
         Long turmaId,
         String turma,
-        String dataInicio, // formato dd/MM/yyyy HH:mm
-        String dataFim,    // formato dd/MM/yyyy HH:mm
-        Integer tempoLimite, // minutos
+        String dataInicio,
+        String dataFim,
+        Integer tempoLimite,
         boolean modoSeguro,
         boolean liberada,
         int totalAlunos,

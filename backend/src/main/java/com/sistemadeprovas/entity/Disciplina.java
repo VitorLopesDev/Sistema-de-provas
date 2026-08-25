@@ -29,7 +29,7 @@ public class Disciplina {
     private Long id;
 
     @Column(nullable = false)
-    private String nome; // ex: "Banco de Dados I"
+    private String nome;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "professor_id", nullable = false)

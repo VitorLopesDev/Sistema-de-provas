@@ -13,8 +13,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// Vincula uma questão do banco a uma prova específica. A mesma questão pode
-// ser usada em várias provas, cada uma com seu próprio peso e ordem.
 @Entity
 @Table(
         name = "prova_questoes",
@@ -37,12 +35,9 @@ public class ProvaQuestao {
     @JoinColumn(name = "questao_id", nullable = false)
     private Questao questao;
 
-    // Peso desta questão nesta prova (a mesma questão pode valer pontuações
-    // diferentes em provas diferentes)
     @Column(nullable = false)
     private Double pontuacao;
 
-    // Posição da questão dentro desta prova (1, 2, 3...)
     @Column(nullable = false)
     private Integer ordem;
 }

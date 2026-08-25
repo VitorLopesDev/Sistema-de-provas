@@ -29,7 +29,7 @@ public class Assunto {
     private Long id;
 
     @Column(nullable = false)
-    private String nome; // ex: "SQL"
+    private String nome;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "disciplina_id", nullable = false)

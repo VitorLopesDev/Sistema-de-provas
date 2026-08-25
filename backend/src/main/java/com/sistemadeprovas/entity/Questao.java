@@ -21,10 +21,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-// Questão vive no banco reutilizável do professor, vinculada a um assunto
-// dentro de uma disciplina. Não pertence a nenhuma prova específica — o
-// vínculo entre questão e prova (com peso e ordem próprios daquele uso)
-// é feito pela entidade ProvaQuestao.
 @Entity
 @Table(name = "questoes")
 @Getter
@@ -54,7 +50,6 @@ public class Questao {
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
 
-    // Só é preenchida quando tipo = MULTIPLA_ESCOLHA
     @OneToMany(mappedBy = "questao", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Alternativa> alternativas = new ArrayList<>();
 

@@ -4,7 +4,7 @@ public record TurmaResponse(
         Long id,
         String nome,
         Long disciplinaId,
-        String disciplina, // nome da disciplina
+        String disciplina,
         String turno,
         String nivel,
         String codigo,

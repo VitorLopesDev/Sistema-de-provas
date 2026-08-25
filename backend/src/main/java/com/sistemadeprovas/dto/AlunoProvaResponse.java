@@ -6,9 +6,9 @@ public record AlunoProvaResponse(
         Long id,
         String titulo,
         String turma,
-        String status, // "pendente" | "enviada" | "liberada"
-        String dataInicio, // formato dd/MM/yyyy HH:mm
-        String dataFim,    // formato dd/MM/yyyy HH:mm
+        String status,
+        String dataInicio,
+        String dataFim,
         Double nota,
         Double notaMaxima,
         List<QuestaoRespostaAlunoResponse> questoes

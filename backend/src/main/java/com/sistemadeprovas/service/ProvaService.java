@@ -48,8 +48,6 @@ public class ProvaService {
     private static final DateTimeFormatter FORMATO_DATA_HORA = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final DateTimeFormatter FORMATO_HORA = DateTimeFormatter.ofPattern("HH:mm");
 
-    // A tela de criação não deixa o professor definir peso por questão ainda —
-    // por ora a prova sempre vale 10 pontos, divididos igualmente entre as questões.
     private static final double PONTUACAO_TOTAL_PROVA = 10.0;
 
     private final ProvaRepository provaRepository;
@@ -61,7 +59,6 @@ public class ProvaService {
     private final RespostaQuestaoRepository respostaQuestaoRepository;
     private final UsuarioRepository usuarioRepository;
 
-    // ==================== PROFESSOR ====================
 
     @Transactional
     public ProvaResponse criar(Long turmaId, ProvaRequest request) {
@@ -146,9 +143,6 @@ public class ProvaService {
         verificarDonoTurma(professor, prova.getTurma());
 
         try {
-            // As associações de questões são "da própria prova" — podem ser limpas
-            // livremente. O que realmente bloqueia a exclusão são tentativas de alunos
-            // já registradas (essas sim representam dado real que não pode sumir).
             provaQuestaoRepository.deleteAll(provaQuestaoRepository.findByProvaIdOrderByOrdemAsc(prova.getId()));
             provaRepository.delete(prova);
             provaRepository.flush();
@@ -173,7 +167,6 @@ public class ProvaService {
         return toResponse(prova);
     }
 
-    // ==================== ALUNO ====================
 
     public List<AlunoProvaResponse> listarMinhasAluno() {
         Usuario aluno = getUsuarioAutenticado();
@@ -239,12 +232,6 @@ public class ProvaService {
             resposta.setRespostaTexto(textoResposta);
 
             if (questao.getTipo() == TipoQuestao.MULTIPLA_ESCOLHA) {
-                // Limitação atual: a tela de resposta ainda não tem seleção de
-                // alternativa (rádio) — o aluno digita a resposta em texto livre,
-                // mesmo pra múltipla escolha. A correção automática compara esse
-                // texto com o texto exato da alternativa correta. Isso é frágil
-                // (um espaço a mais já derruba a comparação); o jeito certo de
-                // resolver é a tela passar a ter seleção de alternativa de verdade.
                 Alternativa corretaAlt = questao.getAlternativas().stream()
                         .filter(Alternativa::isCorreta)
                         .findFirst()
@@ -267,8 +254,6 @@ public class ProvaService {
 
         return toAlunoResponse(prova, aluno);
     }
-
-    // --- helpers compartilhados ---
 
     private void validarDatas(ProvaRequest request) {
         if (!request.dataFim().isAfter(request.dataInicio())) {

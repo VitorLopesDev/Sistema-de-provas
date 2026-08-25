@@ -162,7 +162,6 @@ public class TurmaService {
         return toResponse(turma);
     }
 
-    // --- helpers ---
 
     private Turma buscarTurmaOuFalhar(Long id) {
         return turmaRepository.findById(id)

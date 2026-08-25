@@ -14,10 +14,8 @@ public record QuestaoResponse(
         String assunto,
         TipoQuestao tipo,
         Dificuldade dificuldade,
-        String dataPublicacao, // formato dd/MM/yyyy
+        String dataPublicacao,
         List<AlternativaResponse> alternativas,
         int totalRespondentes,
-        // null quando ainda não há respostas, ou quando o tipo é DISSERTATIVA
-        // (correção manual, não dá pra calcular "acerto" automaticamente)
         Double percentualAcerto
 ) {}

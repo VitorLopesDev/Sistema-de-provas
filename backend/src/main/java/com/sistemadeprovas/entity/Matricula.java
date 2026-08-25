@@ -15,8 +15,6 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-// Relaciona um aluno a uma turma. Um aluno não pode se matricular duas vezes na mesma turma
-// (garantido pela unique constraint abaixo).
 @Entity
 @Table(
         name = "matriculas",

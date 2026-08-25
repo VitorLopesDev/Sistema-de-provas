@@ -30,7 +30,7 @@ public class Usuario {
     private String email;
 
     @Column(nullable = false)
-    private String senha; // sempre armazenada com hash (BCrypt), nunca em texto puro
+    private String senha;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

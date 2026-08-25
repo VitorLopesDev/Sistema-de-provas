@@ -140,7 +140,6 @@ public class QuestaoService {
         }
     }
 
-    // --- helpers ---
 
     private void validarAlternativas(QuestaoRequest request) {
         if (request.tipo() != TipoQuestao.MULTIPLA_ESCOLHA) {

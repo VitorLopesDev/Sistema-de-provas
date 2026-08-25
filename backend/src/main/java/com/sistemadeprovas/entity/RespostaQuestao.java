@@ -13,9 +13,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// Resposta do aluno para UMA questão dentro de uma tentativa.
-// Só um dos dois campos (alternativaEscolhida / respostaTexto) é preenchido,
-// dependendo do tipo da questão.
 @Entity
 @Table(
         name = "respostas_questao",
@@ -38,16 +35,12 @@ public class RespostaQuestao {
     @JoinColumn(name = "questao_id", nullable = false)
     private Questao questao;
 
-    // Preenchido quando questao.tipo == MULTIPLA_ESCOLHA
     @ManyToOne
     @JoinColumn(name = "alternativa_id")
     private Alternativa alternativaEscolhida;
 
-    // Preenchido quando questao.tipo == DISSERTATIVA
     @Column(columnDefinition = "TEXT")
     private String respostaTexto;
 
-    // Nota dessa questão específica. Múltipla escolha pode ser calculada automaticamente
-    // (comparando com a alternativa correta); dissertativa precisa ser preenchida pelo professor.
     private Double pontuacaoObtida;
 }

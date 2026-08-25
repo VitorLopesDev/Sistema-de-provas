@@ -21,8 +21,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-// Representa a tentativa de um aluno específico em uma prova específica
-// (o que o front chama de "aluno enviado/pendente" dentro de uma prova).
 @Entity
 @Table(
         name = "tentativas_prova",
@@ -53,14 +51,9 @@ public class TentativaProva {
 
     private LocalDateTime dataEnvio;
 
-    // Contador simples de eventos suspeitos (ex: troca de aba, saída de tela cheia).
-    // Se um dia precisar de log detalhado (tipo + horário de cada alerta), isso vira
-    // uma entidade própria (AlertaTentativa) referenciando esta aqui.
     @Column(nullable = false)
     private Integer alertas = 0;
 
-    // Preenchida depois que a prova é corrigida (múltipla escolha pode ser automática,
-    // dissertativa precisa de correção manual do professor via pontuacaoObtida em cada resposta).
     private Double nota;
 
     @OneToMany(mappedBy = "tentativa", cascade = CascadeType.ALL, orphanRemoval = true)

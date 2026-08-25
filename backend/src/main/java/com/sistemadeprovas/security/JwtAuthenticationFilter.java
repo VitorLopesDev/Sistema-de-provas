@@ -55,9 +55,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (JwtException | UsernameNotFoundException | IllegalArgumentException e) {
-            // Token expirado, malformado, com assinatura inválida, ou apontando para um
-            // usuário que não existe mais (ex: banco recriado). Nesses casos seguimos sem
-            // autenticar; quem decide se a rota exige login é o SecurityConfig.
             SecurityContextHolder.clearContext();
         }
 

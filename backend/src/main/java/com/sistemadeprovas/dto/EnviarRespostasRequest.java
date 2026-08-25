@@ -6,5 +6,5 @@ import java.util.Map;
 
 public record EnviarRespostasRequest(
         @NotNull(message = "Respostas são obrigatórias")
-        Map<Long, String> respostas // questaoId -> texto digitado pelo aluno
+        Map<Long, String> respostas
 ) {}

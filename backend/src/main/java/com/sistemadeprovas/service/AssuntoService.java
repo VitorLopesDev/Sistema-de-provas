@@ -87,7 +87,6 @@ public class AssuntoService {
         }
     }
 
-    // --- helpers ---
 
     private Disciplina buscarDisciplinaOuFalhar(Long id) {
         return disciplinaRepository.findById(id)

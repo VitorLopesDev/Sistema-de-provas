@@ -12,7 +12,6 @@ public record ProvaRequest(
         @NotBlank(message = "Título é obrigatório")
         String titulo,
 
-        // Opcional — texto livre mostrado ao aluno antes de iniciar
         String instrucoes,
 
         @NotNull(message = "Data/hora de início é obrigatória")

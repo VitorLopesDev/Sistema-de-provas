@@ -21,7 +21,6 @@ public record QuestaoRequest(
         @NotNull(message = "Dificuldade é obrigatória")
         Dificuldade dificuldade,
 
-        // Obrigatório (e validado) apenas quando tipo == MULTIPLA_ESCOLHA
         @Valid
         List<AlternativaRequest> alternativas
 ) {}
